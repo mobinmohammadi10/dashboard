@@ -1,223 +1,210 @@
-<script>
+<script setup>
 import { ref, watch, computed, onMounted } from 'vue'
+import MenuItem from './MenuItem.vue'
 
-export default {
-  props: {
-    isMenuOpen: {
-      type: Boolean,
-      default: true
-    },
-    isUsedVueRouter: {
-      type: Boolean,
-      default: false
-    },
-    menuTitle: {
-      type: String,
-      default: 'MobinDash'
-    },
-    menuLogo: {
-      type: String,
-      default: ''
-    },
-    menuIcon: {
-      type: String,
-      default: 'bxl-outline'
-    },
-    isPaddingLeft: {
-      type: Boolean,
-      default: true
-    },
-    menuOpenedPaddingLeftBody: {
-      type: String,
-      default: '250px'
-    },
-    menuClosedPaddingLeftBody: {
-      type: String,
-      default: '78px'
-    },
-    menuItems: {
-      type: Array,
-      default: () => [
-        {
-          link: '#',
-          name: 'Dashboard',
-          tooltip: 'Dashboard',
-          icon: 'bx-grid-alt'
-        },
-        {
-          link: '#',
-          name: 'Calendar',
-          tooltip: 'Calendar',
-          icon: 'bx bxs-calendar'
-        },
-        {
-          link: '#',
-          name: 'Settings',
-          tooltip: 'Settings',
-          icon: 'bx bxs-cog'
-        },
-        {
-          link: '#',
-          name: 'FAQ',
-          tooltip: 'FAQ',
-          icon: 'bx bxs-discourse'
-        }
-        // other items...
-      ]
-    },
-    isSearch: {
-      type: Boolean,
-      default: true
-    },
-    searchPlaceholder: {
-      type: String,
-      default: 'Search...'
-    },
-    searchTooltip: {
-      type: String,
-      default: 'Search'
-    },
-    profileImg: {
-      type: String,
-      default: ''
-    },
-    profileName: {
-      type: String,
-      default: 'Mobin Mohammadi'
-    },
-    profileRole: {
-      type: String,
-      default: 'General Physician'
-    },
-    isExitButton: {
-      type: Boolean,
-      default: true
-    },
-    isLoggedIn: {
-      type: Boolean,
-      default: true
-    },
-    bgColor: {
-      type: String,
-      default: '#11101d'
-    },
-    secondaryColor: {
-      type: String,
-      default: '#1d1b31'
-    },
-    homeSectionColor: {
-      type: String,
-      default: '#e4e9f7'
-    },
-    logoTitleColor: {
-      type: String,
-      default: '#fff'
-    },
-    iconsColor: {
-      type: String,
-      default: '#fff'
-    },
-    itemsTooltipColor: {
-      type: String,
-      default: '#e4e9f7'
-    },
-    searchInputTextColor: {
-      type: String,
-      default: '#fff'
-    },
-    menuItemsHoverColor: {
-      type: String,
-      default: '#fff'
-    },
-    menuItemsTextColor: {
-      type: String,
-      default: '#fff'
-    },
-    menuFooterTextColor: {
-      type: String,
-      default: '#fff'
-    }
+const props = defineProps({
+  isMenuOpen: {
+    type: Boolean,
+    default: true
   },
-  setup(props, { emit }) {
-    const isOpened = ref(false)
-
-    const cssVars = computed(() => ({
-      '--bg-color': props.bgColor,
-      '--secondary-color': props.secondaryColor,
-      '--home-section-color': props.homeSectionColor,
-      '--logo-title-color': props.logoTitleColor,
-      '--icons-color': props.iconsColor,
-      '--items-tooltip-color': props.itemsTooltipColor,
-      '--serach-input-text-color': props.searchInputTextColor,
-      '--menu-items-hover-color': props.menuItemsHoverColor,
-      '--menu-items-text-color': props.menuItemsTextColor,
-      '--menu-footer-text-color': props.menuFooterTextColor
-    }))
-
-    const toggleMenu = () => {
-      isOpened.value = !isOpened.value
-    }
-
-    const openMenu = () => {
-      isOpened.value = true
-    }
-
-    const onSearchInput = (event) => {
-      emit('search-input-emit', event.target.value)
-    }
-
-    const menuItemClicked = (link) => {
-      emit('menuItemClcked', link)
-    }
-
-    const exitButtonClicked = () => {
-      emit('button-exit-clicked')
-    }
-
-    onMounted(() => {
-      isOpened.value = props.isMenuOpen
-      tooltipAttached()
-    })
-
-    watch(isOpened, (val) => {
-      document.body.style.paddingLeft =
-        val && props.isPaddingLeft
-          ? props.menuOpenedPaddingLeftBody
-          : props.menuClosedPaddingLeftBody
-    })
-
-    const tooltipAttached = () => {
-      const tooltips = document.querySelectorAll('.tooltip')
-      tooltips.forEach((tooltip) => {
-        document.body.appendChild(tooltip)
-        const targetID = tooltip.dataset.target
-        const target = document.querySelector(`#${targetID}`)
-        if (!target) return
-
-        target.addEventListener('mouseenter', () => {
-          const targetPosition = target.getBoundingClientRect()
-          if (isOpened.value) return
-          tooltip.style.top = `${targetPosition.top + window.scrollY}px`
-          tooltip.style.left = `${targetPosition.left + targetPosition.width + 20}px`
-          tooltip.classList.add('active')
-        })
-
-        target.addEventListener('mouseleave', () => {
-          tooltip.classList.remove('active')
-        })
-      })
-    }
-
-    return {
-      isOpened,
-      cssVars,
-      toggleMenu,
-      openMenu,
-      onSearchInput,
-      menuItemClicked,
-      exitButtonClicked
-    }
+  isUsedVueRouter: {
+    type: Boolean,
+    default: false
+  },
+  menuTitle: {
+    type: String,
+    default: 'MobinDash'
+  },
+  menuLogo: {
+    type: String,
+    default: 'bxl-sketch'
+  },
+  menuIcon: {
+    type: String,
+    default: 'bxl-outline'
+  },
+  isPaddingLeft: {
+    type: Boolean,
+    default: true
+  },
+  menuOpenedPaddingLeftBody: {
+    type: String,
+    default: '250px'
+  },
+  menuClosedPaddingLeftBody: {
+    type: String,
+    default: '78px'
+  },
+  menuItems: {
+    type: Array,
+    default: () => [
+      {
+        link: '#',
+        name: 'Dashboard',
+        tooltip: 'Dashboard',
+        icon: 'bx-grid-alt'
+      },
+      {
+        link: '#',
+        name: 'Calendar',
+        tooltip: 'Calendar',
+        icon: 'bx-calendar'
+      },
+      {
+        link: '#',
+        name: 'Settings',
+        tooltip: 'Settings',
+        icon: 'bx-cog'
+      },
+      {
+        link: '#',
+        name: 'FAQ',
+        tooltip: 'FAQ',
+        icon: 'bx-message-dots'
+      }
+    ]
+  },
+  isSearch: {
+    type: Boolean,
+    default: true
+  },
+  searchPlaceholder: {
+    type: String,
+    default: 'Search...'
+  },
+  searchTooltip: {
+    type: String,
+    default: 'Search'
+  },
+  profileImg: {
+    type: String,
+    default: ''
+  },
+  profileName: {
+    type: String,
+    default: 'Mobin Mohammadi'
+  },
+  profileRole: {
+    type: String,
+    default: 'General Physician'
+  },
+  isExitButton: {
+    type: Boolean,
+    default: true
+  },
+  isLoggedIn: {
+    type: Boolean,
+    default: true
+  },
+  bgColor: {
+    type: String,
+    default: '#11101d'
+  },
+  secondaryColor: {
+    type: String,
+    default: '#1d1b31'
+  },
+  homeSectionColor: {
+    type: String,
+    default: '#e4e9f7'
+  },
+  logoTitleColor: {
+    type: String,
+    default: '#fff'
+  },
+  iconsColor: {
+    type: String,
+    default: '#fff'
+  },
+  itemsTooltipColor: {
+    type: String,
+    default: '#e4e9f7'
+  },
+  searchInputTextColor: {
+    type: String,
+    default: '#fff'
+  },
+  menuItemsHoverColor: {
+    type: String,
+    default: '#fff'
+  },
+  menuItemsTextColor: {
+    type: String,
+    default: '#fff'
+  },
+  menuFooterTextColor: {
+    type: String,
+    default: '#fff'
   }
+})
+
+const emit = defineEmits(['search-input-emit', 'menuItemClcked', 'button-exit-clicked'])
+
+const isOpened = ref(false)
+
+const cssVars = computed(() => ({
+  '--bg-color': props.bgColor,
+  '--secondary-color': props.secondaryColor,
+  '--home-section-color': props.homeSectionColor,
+  '--logo-title-color': props.logoTitleColor,
+  '--icons-color': props.iconsColor,
+  '--items-tooltip-color': props.itemsTooltipColor,
+  '--serach-input-text-color': props.searchInputTextColor,
+  '--menu-items-hover-color': props.menuItemsHoverColor,
+  '--menu-items-text-color': props.menuItemsTextColor,
+  '--menu-footer-text-color': props.menuFooterTextColor
+}))
+
+const toggleMenu = () => {
+  isOpened.value = !isOpened.value
+}
+
+const openMenu = () => {
+  isOpened.value = true
+}
+
+const onSearchInput = (event) => {
+  emit('search-input-emit', event.target.value)
+}
+
+const menuItemClicked = (link) => {
+  emit('menuItemClcked', link)
+}
+
+const exitButtonClicked = () => {
+  emit('button-exit-clicked')
+}
+
+onMounted(() => {
+  isOpened.value = props.isMenuOpen
+  tooltipAttached()
+})
+
+watch(isOpened, (val) => {
+  document.body.style.paddingLeft =
+    val && props.isPaddingLeft ? props.menuOpenedPaddingLeftBody : props.menuClosedPaddingLeftBody
+})
+
+const tooltipAttached = () => {
+  const tooltips = document.querySelectorAll('.tooltip')
+  tooltips.forEach((tooltip) => {
+    document.body.appendChild(tooltip)
+    const targetID = tooltip.dataset.target
+    const target = document.querySelector(`#${targetID}`)
+    if (!target) return
+
+    target.addEventListener('mouseenter', () => {
+      const targetPosition = target.getBoundingClientRect()
+      if (isOpened.value) return
+      tooltip.style.top = `${targetPosition.top + window.scrollY}px`
+      tooltip.style.left = `${targetPosition.left + targetPosition.width + 20}px`
+      tooltip.classList.add('active')
+    })
+
+    target.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('active')
+    })
+  })
 }
 </script>
 
@@ -251,20 +238,14 @@ export default {
             <input type="text" :placeholder="searchPlaceholder" @input="onSearchInput" />
             <span data-target="links_search" class="tooltip">{{ searchTooltip }}</span>
           </li>
-
-          <li v-for="(menuItem, index) in menuItems" :key="index" :id="'links_' + index">
-            <router-link v-if="isUsedVueRouter" :to="menuItem.link">
-              <i class="bx" :class="menuItem.icon || 'bx-square-rounded'" />
-              <span class="links_name">{{ menuItem.name }}</span>
-            </router-link>
-            <a v-else @click.stop.prevent="menuItemClicked(menuItem.link)" :href="menuItem.link">
-              <i class="bx" :class="menuItem.icon || 'bx-square-rounded'" />
-              <span class="links_name">{{ menuItem.name }}</span>
-            </a>
-            <span :data-target="'links_' + index" class="tooltip">{{
-              menuItem.tooltip || menuItem.name
-            }}</span>
-          </li>
+          <MenuItem
+            v-for="(menuItem, index) in menuItems"
+            :key="index"
+            :menu-item="menuItem"
+            :id="index"
+            :is-used-vue-router="isUsedVueRouter"
+            @menu-item-clicked="menuItemClicked"
+          />
         </ul>
       </div>
 
