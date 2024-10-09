@@ -9,7 +9,7 @@ const props = defineProps({
   },
   isUsedVueRouter: {
     type: Boolean,
-    default: false
+    default: true
   },
   menuTitle: {
     type: String,
@@ -39,25 +39,25 @@ const props = defineProps({
     type: Array,
     default: () => [
       {
-        link: '#',
+        link: '/',
         name: 'Dashboard',
         tooltip: 'Dashboard',
         icon: 'bx-grid-alt'
       },
       {
-        link: '#',
+        link: '/calendar',
         name: 'Calendar',
         tooltip: 'Calendar',
         icon: 'bx-calendar'
       },
       {
-        link: '#',
+        link: '/settings',
         name: 'Settings',
         tooltip: 'Settings',
         icon: 'bx-cog'
       },
       {
-        link: '#',
+        link: '/faq',
         name: 'FAQ',
         tooltip: 'FAQ',
         icon: 'bx-message-dots'
