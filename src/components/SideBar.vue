@@ -1,11 +1,14 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue'
 import MenuItem from './MenuItem.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const props = defineProps({
   isMenuOpen: {
     type: Boolean,
-    default: true
+    default: false
   },
   isUsedVueRouter: {
     type: Boolean,
@@ -172,7 +175,7 @@ const menuItemClicked = (link) => {
 }
 
 const exitButtonClicked = () => {
-  emit('button-exit-clicked')
+  router.push('/login')
 }
 
 onMounted(() => {
