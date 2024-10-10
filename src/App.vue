@@ -5,9 +5,7 @@ import { RouterView } from 'vue-router'
 
 <template>
   <div>
-    <SideBar @search-input-emit="search" />
+    <SideBar @search-input-emit="search" :is-used-vue-router="true" />
   </div>
-  <div>
-    <RouterView></RouterView>
-  </div>
+  <RouterView></RouterView>
 </template>

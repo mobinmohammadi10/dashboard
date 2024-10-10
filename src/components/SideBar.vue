@@ -9,7 +9,7 @@ const props = defineProps({
   },
   isUsedVueRouter: {
     type: Boolean,
-    default: true
+    default: false
   },
   menuTitle: {
     type: String,
