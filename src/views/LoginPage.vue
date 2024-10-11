@@ -83,19 +83,24 @@ const loginMessage = ref('')
 const login = async () => {
   const usernameValue = username.value
   const passwordValue = password.value
-  const res = await fetch('http://localhost:3000/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ username: usernameValue, password: passwordValue })
-  })
-  const data = await res.json()
-  if (data.success) {
-    console.log('User logged in successfully')
-    router.push('/')
-  } else {
-    loginMessage.value = 'Failed to log in'
+  try {
+    const res = await fetch('http://localhost:3000/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username: usernameValue, password: passwordValue })
+    })
+    const data = await res.json()
+    if (res.ok) {
+      console.log('User logged in successfully')
+      localStorage.setItem('token', data.token)
+      router.push('/')
+    } else {
+      loginMessage.value = data.message
+    }
+  } catch (error) {
+    console.error('Error logging in:', error)
   }
 }
 </script>
