@@ -1,14 +1,3 @@
-<script setup>
-import { ref } from 'vue'
-const message = ref('I am Setting.') //-
-</script>
-<template>
-  <div class="container mx-auto p-6 max-w-md bg-white shadow-lg rounded-lg">
-    <p class="flex items-center space-x-4 text-xl font-medium text-black">
-      {{ message }}
-    </p>
-  </div>
-</template>
 <template>
   <div class="settings-container" :class="{ darkMode: settings.darkMode }">
     <h1>User Settings</h1>
@@ -67,49 +56,49 @@ export default {
       settings: {
         notifications: false,
         darkMode: false,
-        fontSize: 16,
+        fontSize: 16
       },
       oldPassword: '',
       newPassword: '',
       confirmPassword: '',
-      showPasswordForm: false, // To show or hide password form
-    };
+      showPasswordForm: false // To show or hide password form
+    }
   },
   methods: {
     togglePasswordForm() {
-      this.showPasswordForm = !this.showPasswordForm;
+      this.showPasswordForm = !this.showPasswordForm
     },
     changePassword() {
       if (this.newPassword !== this.confirmPassword) {
-        alert('New passwords do not match.');
+        alert('New passwords do not match.')
       } else if (this.newPassword.length < 6) {
-        alert('Password must be at least 6 characters long.');
+        alert('Password must be at least 6 characters long.')
       } else {
         // Here, you can send a request to update the password in the backend
-        alert('Password updated successfully.');
-        this.oldPassword = '';
-        this.newPassword = '';
-        this.confirmPassword = '';
-        this.showPasswordForm = false; // Hide form after success
+        alert('Password updated successfully.')
+        this.oldPassword = ''
+        this.newPassword = ''
+        this.confirmPassword = ''
+        this.showPasswordForm = false // Hide form after success
       }
     },
     confirmLogout() {
       if (confirm('Are you sure you want to log out?')) {
-        alert('You have been logged out.');
+        alert('You have been logged out.')
         // You can add code to navigate to login or perform logout action
       }
-    },
+    }
   },
   watch: {
     'settings.darkMode'(newVal) {
-      document.body.style.backgroundColor = newVal ? '#333' : '#fff';
-      document.body.style.color = newVal ? '#fff' : '#000';
+      document.body.style.backgroundColor = newVal ? '#333' : '#fff'
+      document.body.style.color = newVal ? '#fff' : '#000'
     },
     'settings.fontSize'(newVal) {
-      document.body.style.fontSize = `${newVal}px`;
-    },
-  },
-};
+      document.body.style.fontSize = `${newVal}px`
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -141,7 +130,7 @@ label {
   margin-right: 10px;
 }
 
-input[type="range"] {
+input[type='range'] {
   width: 100%;
 }
 
