@@ -105,20 +105,16 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'FaqPage',
-  data() {
-    return {
-      openQuestion: null, // Tracks which question is currently open
-    };
-  },
-  methods: {
-    toggleQuestion(questionId) {
-      this.openQuestion = this.openQuestion === questionId ? null : questionId;
-    },
-  },
-};
+<script setup>
+import { ref } from 'vue'
+
+// Reactive state for managing which question is open
+const openQuestion = ref(null)
+
+// Method to toggle which FAQ question is open
+const toggleQuestion = (questionId) => {
+  openQuestion.value = openQuestion.value === questionId ? null : questionId
+}
 </script>
 
 <style scoped>

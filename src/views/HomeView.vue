@@ -45,22 +45,28 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      // List of days in the week (will remain static)
-      days: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+<script setup>
+import { ref, onMounted } from 'vue'
 
-      // People data will come from the backend, initially empty
-      people: []
-    };
-  },
-  mounted() {
-    // Assume backend call to fetch the list of people and their shifts
-    // this.people = fetchedDataFromBackend;
+// List of days in the week (static)
+const days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
+// People data will come from the backend, initially empty
+const people = ref([])
+
+// Fetch data from backend when the component is mounted
+onMounted(async () => {
+  try {
+    // Make your API call to fetch the people and their shifts here
+    const response = await fetch('/api/people') // Replace with your actual API endpoint
+    const data = await response.json()
+
+    // Assign the fetched data to the people ref
+    people.value = data
+  } catch (error) {
+    console.error("Error fetching people data:", error)
   }
-};
+})
 </script>
 
 <style scoped>
