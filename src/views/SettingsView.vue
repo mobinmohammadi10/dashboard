@@ -1,213 +1,175 @@
 <template>
-  <div class="settings-container" :class="{ darkMode: settings.darkMode }">
-    <h1>User Settings</h1>
+  <div :class="['max-w-lg mx-auto p-6 shadow-lg rounded-lg transition-all duration-300', settings.darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black']">
+    <h1 class="text-2xl font-semibold mb-6">User Settings</h1>
 
     <!-- Notification Settings with Toggle -->
-    <div class="form-group">
-      <label for="notifications">Notifications for shift reminder</label>
-      <label class="switch">
-        <input type="checkbox" v-model="settings.notifications" id="notifications" />
-        <span class="slider round"></span>
+    <div class="flex items-center justify-between mb-6">
+      <label for="notifications" class="font-medium">Notifications for shift reminder</label>
+      <label class="relative inline-block w-12 h-6">
+        <input type="checkbox" v-model="settings.notifications" id="notifications" class="sr-only">
+        <span class="slider block w-full h-full bg-gray-300 rounded-full cursor-pointer"></span>
+        <span class="dot absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform transform" :class="{ 'translate-x-6': settings.notifications }"></span>
       </label>
-      <p v-if="settings.notifications">Notifications enabled.</p>
-      <p v-else>Notifications disabled.</p>
     </div>
+    <p v-if="settings.notifications" class="text-sm text-green-500 mb-6">Notifications enabled.</p>
+    <p v-else class="text-sm text-red-500 mb-6">Notifications disabled.</p>
 
     <!-- Dark Mode Toggle -->
-    <div class="form-group">
-      <label for="dark-mode">Dark Mode</label>
-      <label class="switch">
-        <input type="checkbox" v-model="settings.darkMode" id="dark-mode" />
-        <span class="slider round"></span>
+    <div class="flex items-center justify-between mb-6">
+      <label for="dark-mode" class="font-medium">Dark Mode</label>
+      <label class="relative inline-block w-12 h-6">
+        <input type="checkbox" v-model="settings.darkMode" id="dark-mode" class="sr-only">
+        <span class="slider block w-full h-full bg-gray-300 rounded-full cursor-pointer"></span>
+        <span class="dot absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform transform" :class="{ 'translate-x-6': settings.darkMode }"></span>
       </label>
-      <p v-if="settings.darkMode">Dark mode is on.</p>
-      <p v-else>Dark mode is off.</p>
     </div>
+    <p v-if="settings.darkMode" class="text-sm text-green-500 mb-6">Dark mode is on.</p>
+    <p v-else class="text-sm text-red-500 mb-6">Dark mode is off.</p>
 
     <!-- Font Size -->
-    <div class="form-group">
-      <label for="font-size">Font Size</label>
-      <input type="range" v-model="settings.fontSize" id="font-size" min="12" max="24" />
-      <span>{{ settings.fontSize }}px</span>
+    <div class="mb-6">
+      <label for="font-size" class="block font-medium mb-2">Font Size</label>
+      <input type="range" v-model="settings.fontSize" id="font-size" min="12" max="24" class="w-full">
+      <span class="block text-sm mt-2">{{ settings.fontSize }}px</span>
     </div>
 
     <!-- Change Password -->
-    <div class="form-group">
-      <button @click="togglePasswordForm">Change Password</button>
-      <div v-if="showPasswordForm" class="password-form">
-        <input type="password" v-model="oldPassword" placeholder="Previous password" />
-        <input type="password" v-model="newPassword" placeholder="New password" />
-        <input type="password" v-model="confirmPassword" placeholder="Repeat new password" />
-        <button @click="changePassword">Update Password</button>
+    <div class="mb-6">
+      <button @click="togglePasswordForm" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition">
+        Change Password
+      </button>
+      <div v-if="showPasswordForm" class="mt-4 space-y-4">
+        <input type="password" v-model="oldPassword" placeholder="Previous password" class="w-full p-2 border rounded" :class="{ 'bg-gray-900 text-white': settings.darkMode, 'bg-white text-black': !settings.darkMode }">
+        <input type="password" v-model="newPassword" placeholder="New password" class="w-full p-2 border rounded" :class="{ 'bg-gray-900 text-white': settings.darkMode, 'bg-white text-black': !settings.darkMode }">
+        <input type="password" v-model="confirmPassword" placeholder="Repeat new password" class="w-full p-2 border rounded" :class="{ 'bg-gray-900 text-white': settings.darkMode, 'bg-white text-black': !settings.darkMode }">
+        <button @click="changePassword" class="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition">
+          Update Password
+        </button>
       </div>
     </div>
 
     <!-- Log Out Button -->
-    <div class="form-group logout">
-      <button @click="confirmLogout">Log Out</button>
+    <div class="mb-6">
+      <button @click="confirmLogout" class="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition">
+        Log Out
+      </button>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      settings: {
-        notifications: false,
-        darkMode: false,
-        fontSize: 16
-      },
-      oldPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-      showPasswordForm: false // To show or hide password form
+<script setup>
+import { ref, reactive, watch, onMounted } from 'vue';
+
+// Reactive object to hold the settings
+const settings = reactive({
+  notifications: false,
+  darkMode: false,
+  fontSize: 16
+});
+
+// State for password change form
+const oldPassword = ref('');
+const newPassword = ref('');
+const confirmPassword = ref('');
+const showPasswordForm = ref(false);
+
+// Methods to toggle password form and update password
+const togglePasswordForm = () => {
+  showPasswordForm.value = !showPasswordForm.value;
+};
+
+const changePassword = () => {
+  if (newPassword.value !== confirmPassword.value) {
+    alert('New passwords do not match.');
+  } else if (newPassword.value.length < 6) {
+    alert('Password must be at least 6 characters long.');
+  } else {
+    alert('Password updated successfully.');
+    oldPassword.value = '';
+    newPassword.value = '';
+    confirmPassword.value = '';
+    showPasswordForm.value = false;
+  }
+};
+
+// Logout function
+const confirmLogout = () => {
+  if (confirm('Are you sure you want to log out?')) {
+    alert('You have been logged out.');
+  }
+};
+
+// Watchers for dark mode and font size changes
+watch(
+  () => settings.darkMode,
+  (newVal) => {
+    if (newVal) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
-  },
-  methods: {
-    togglePasswordForm() {
-      this.showPasswordForm = !this.showPasswordForm
-    },
-    changePassword() {
-      if (this.newPassword !== this.confirmPassword) {
-        alert('New passwords do not match.')
-      } else if (this.newPassword.length < 6) {
-        alert('Password must be at least 6 characters long.')
-      } else {
-        // Here, you can send a request to update the password in the backend
-        alert('Password updated successfully.')
-        this.oldPassword = ''
-        this.newPassword = ''
-        this.confirmPassword = ''
-        this.showPasswordForm = false // Hide form after success
-      }
-    },
-    confirmLogout() {
-      if (confirm('Are you sure you want to log out?')) {
-        alert('You have been logged out.')
-        // You can add code to navigate to login or perform logout action
-      }
-    }
-  },
-  watch: {
-    'settings.darkMode'(newVal) {
-      document.body.style.backgroundColor = newVal ? '#333' : '#fff'
-      document.body.style.color = newVal ? '#fff' : '#000'
-    },
-    'settings.fontSize'(newVal) {
-      document.body.style.fontSize = `${newVal}px`
+    localStorage.setItem('darkMode', newVal);
+  }
+);
+
+watch(
+  () => settings.fontSize,
+  (newVal) => {
+    document.body.style.fontSize = `${newVal}px`;
+    localStorage.setItem('fontSize', newVal);
+  }
+);
+
+// On mounted, load settings from localStorage
+onMounted(() => {
+  const savedFontSize = localStorage.getItem('fontSize');
+  if (savedFontSize) {
+    settings.fontSize = parseInt(savedFontSize, 10);
+    document.body.style.fontSize = `${settings.fontSize}px`;
+  }
+
+  const savedDarkMode = localStorage.getItem('darkMode');
+  if (savedDarkMode !== null) {
+    settings.darkMode = savedDarkMode === 'true';
+    if (settings.darkMode) {
+      document.documentElement.classList.add('dark');
     }
   }
-}
+});
 </script>
 
 <style scoped>
-.settings-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease-in-out;
-}
-
-.darkMode {
-  background-color: #333;
-  color: #fff;
-  border-color: #666;
-}
-
-.form-group {
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-label {
-  margin-right: 10px;
-}
-
-input[type='range'] {
-  width: 100%;
-}
-
-/* Password Form */
-.password-form input {
-  display: block;
-  margin: 10px 0;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: 100%;
-}
-
-button {
-  padding: 10px 15px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #218838;
-}
-
-/* Switch for Dark Mode & Notifications */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 24px;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
 .slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  transition: background-color 0.3s ease;
+}
+.slider.block {
   background-color: #ccc;
-  transition: 0.4s;
+}
+.slider.round {
   border-radius: 34px;
 }
-
-.slider:before {
-  position: absolute;
-  content: '';
-  height: 18px;
-  width: 18px;
-  left: 4px;
-  bottom: 3px;
-  background-color: white;
-  transition: 0.4s;
+.slider.round:before {
   border-radius: 50%;
 }
-
-input:checked + .slider {
+.slider input:checked + .slider {
   background-color: #28a745;
 }
-
-input:checked + .slider:before {
-  transform: translateX(26px);
+.dot {
+  position: absolute;
 }
 
-.logout button {
-  background-color: #dc3545;
+.dark .bg-white {
+  background-color: #1a202c !important; /* Dark mode background */
 }
+.dark .text-black {
+  color: #fff !important; /* Dark mode text color */
+}
+</style>
 
-.logout button:hover {
-  background-color: #c82333;
+<style>
+/* Global dark mode styles */
+.dark {
+  background-color: #1a202c;
+  color: #fff;
 }
 </style>
