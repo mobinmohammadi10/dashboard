@@ -1,8 +1,10 @@
 <script setup>
 import { ref } from 'vue'
+import { jalaaliToDateObject } from 'jalaali-js'
 
 // Declare the message
 const message = ref('Please enter your preferred dates for your shifts:')
+const dateConfirmations = ref([])
 
 // Declare dates to store the selected dates
 const dates = ref([])
@@ -10,6 +12,17 @@ const dates = ref([])
 // Function to clear the selected dates
 const clearDates = () => {
   dates.value = []
+}
+
+const submitDates = () => {
+  for (const date of dates.value) {
+    let splitedDate = parseInt(date.split('/'))
+    dateConfirmations.value.push(
+      jalaaliToDateObject(splitedDate[0], splitedDate[1], splitedDate[2])
+    )
+  }
+
+  // Todo: send date confirmations to the server
 }
 </script>
 
@@ -21,7 +34,11 @@ const clearDates = () => {
 
     <div v-if="dates.length > 0 && dates.length < 4">
       <p class="mt-4 text-blue-500">
-        Selected Dates: <span class="font-bold">{{ dates }}</span>
+        Selected Dates:
+        <span class="font-bold" v-for="date in dates" :key="date.id"
+          ><hr />
+          {{ date }}</span
+        >
       </p>
       <button
         @click="clearDates"
