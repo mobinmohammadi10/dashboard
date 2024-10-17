@@ -87,7 +87,7 @@ const user = ref({
 const darkMode = inject('darkMode');
 const fontSize = inject('fontSize');
 
-
+const notifications = ref(false);
 const currentPassword = ref('');
 const newPassword = ref('');
 const confirmPassword = ref('');
