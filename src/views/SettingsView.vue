@@ -74,9 +74,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, inject } from 'vue'
 
-// User's personal info and settings
 const user = ref({
   firstName: '',
   lastName: '',
@@ -84,11 +83,11 @@ const user = ref({
   pictureUrl: 'https://via.placeholder.com/150'
 });
 
-const darkMode = ref(false);
-const fontSize = ref(16);
-const notifications = ref(false);
+// Inject global dark mode and font size from the provider
+const darkMode = inject('darkMode');
+const fontSize = inject('fontSize');
 
-// Password states
+
 const currentPassword = ref('');
 const newPassword = ref('');
 const confirmPassword = ref('');
@@ -96,7 +95,7 @@ const logoutPassword = ref('');
 
 // Methods to handle various actions
 const savePersonalInfo = () => {
-  // Handle saving user information logic
+
 };
 
 const toggleDarkMode = () => {
@@ -113,7 +112,7 @@ const changePassword = () => {
   if (newPassword.value !== confirmPassword.value) {
     alert('Passwords do not match.');
   } else {
-    // Handle password change logic
+
   }
 };
 
@@ -121,30 +120,9 @@ const logOut = () => {
   if (logoutPassword.value === '') {
     alert('Please enter your password to log out.');
   } else {
-    // Handle log out logic
+  
   }
 };
-
-// Apply saved settings from localStorage
-onMounted(() => {
-  const savedDarkMode = localStorage.getItem('darkMode');
-  if (savedDarkMode) {
-    darkMode.value = savedDarkMode === 'true';
-    document.documentElement.classList.toggle('dark', darkMode.value);
-  }
-
-  const savedFontSize = localStorage.getItem('fontSize');
-  if (savedFontSize) {
-    fontSize.value = parseInt(savedFontSize);
-    document.documentElement.style.fontSize = `${fontSize.value}px`;
-  }
-});
-
-// Watch for changes in font size and update the document
-watch(fontSize, (newSize) => {
-  document.documentElement.style.fontSize = `${newSize}px`;
-  localStorage.setItem('fontSize', newSize);
-});
 </script>
 
 <style scoped>
