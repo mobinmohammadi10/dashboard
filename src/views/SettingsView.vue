@@ -1,5 +1,8 @@
 <template>
-  <div class="max-w-2xl mx-auto p-8 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg shadow-lg transition-all duration-300">
+  <div 
+    class="max-w-2xl mx-auto p-8 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg shadow-lg transition-all duration-300"
+    :style="{ fontSize: fontSize + 'px' }"> <!-- Directly apply font size -->
+    
     <!-- Personal Information Section -->
     <h2 class="text-2xl font-semibold mb-6">Personal Information</h2>
     <div class="flex items-center space-x-4 mb-6">
@@ -33,7 +36,7 @@
     <!-- Font Size Slider -->
     <div class="mb-6">
       <label for="font-size" class="block text-sm font-medium mb-2">Font Size</label>
-      <input type="range" id="font-size" v-model="fontSize" min="12" max="24" class="w-full">
+      <input type="range" id="font-size" v-model="fontSize" min="12" max="24" class="w-full" @input="updateFontSize">
       <span class="block text-sm mt-2">{{ fontSize }}px</span>
     </div>
 
@@ -74,7 +77,7 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref, inject, onMounted } from 'vue'
 
 const user = ref({
   firstName: '',
@@ -83,9 +86,11 @@ const user = ref({
   pictureUrl: 'https://via.placeholder.com/150'
 });
 
-// Inject global dark mode and font size from the provider
+// Inject global dark mode
 const darkMode = inject('darkMode');
-const fontSize = inject('fontSize');
+
+// Font size state
+const fontSize = ref(localStorage.getItem('fontSize') ? Number(localStorage.getItem('fontSize')) : 16); // Load from localStorage or default to 16px
 
 const notifications = ref(false);
 const currentPassword = ref('');
@@ -93,15 +98,16 @@ const newPassword = ref('');
 const confirmPassword = ref('');
 const logoutPassword = ref('');
 
-// Methods to handle various actions
-const savePersonalInfo = () => {
-
-};
+const savePersonalInfo = () => {};
 
 const toggleDarkMode = () => {
   darkMode.value = !darkMode.value;
   document.documentElement.classList.toggle('dark', darkMode.value);
   localStorage.setItem('darkMode', darkMode.value);
+};
+
+const updateFontSize = () => {
+  localStorage.setItem('fontSize', fontSize.value);
 };
 
 const toggleNotifications = () => {
@@ -116,13 +122,19 @@ const changePassword = () => {
   }
 };
 
+
 const logOut = () => {
   if (logoutPassword.value === '') {
     alert('Please enter your password to log out.');
   } else {
-  
+
   }
 };
+
+
+onMounted(() => {
+  document.documentElement.style.fontSize = fontSize.value + 'px';
+});
 </script>
 
 <style scoped>
