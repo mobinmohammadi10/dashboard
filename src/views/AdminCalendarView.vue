@@ -1,8 +1,11 @@
 <script setup>
 import { ref } from 'vue'
+import draggable from 'vuedraggable'
 
 const message = ref('This is a placeholder')
 const dates = ref([])
+
+const users = ref([{ user: 'user1' }, { user: 'user2' }])
 </script>
 
 <template>
@@ -69,32 +72,24 @@ const dates = ref([])
               <div v-for="day in 30" :key="day" class="relative flex flex-col bg-white group">
                 <span class="mx-2 my-1 text-xs font-bold">{{ day }} September</span>
                 <div class="flex flex-col px-1 py-1 overflow-auto">
-                  <button
-                    class="flex items-center flex-shrink-0 h-5 px-1 text-xs hover:bg-gray-200"
+                  <draggable
+                    v-model="users"
+                    item-key="user"
+                    group="users"
+                    :sort="true"
+                    @start="drag = true"
+                    @end="drag = false"
                   >
-                    <span class="flex-shrink-0 w-2 h-2 border border-gray-500 rounded-full"></span>
-                    <span class="ml-2 font-light leading-none">8:30am</span>
-                    <span class="ml-2 font-medium leading-none truncate">An unconfirmed event</span>
-                  </button>
-                  <button
-                    class="flex items-center flex-shrink-0 h-5 px-1 text-xs hover:bg-gray-200"
-                  >
-                    <span class="flex-shrink-0 w-2 h-2 bg-gray-500 rounded-full"></span>
-                    <span class="ml-2 font-light leading-none">2:15pm</span>
-                    <span class="ml-2 font-medium leading-none truncate">A confirmed event</span>
-                  </button>
+                    <template #item="{ element }">
+                      <button
+                        class="flex items-center flex-shrink-0 h-5 px-1 text-xs hover:bg-gray-200"
+                      >
+                        <span class="flex-shrink-0 w-2 h-2 rounded-full"></span>
+                        <span class="ml-2 font-light leading-none">{{ element.user }}</span>
+                      </button>
+                    </template>
+                  </draggable>
                 </div>
-                <button
-                  class="absolute bottom-0 right-0 flex items-center justify-center hidden w-6 h-6 mb-2 mr-2 text-white bg-gray-400 rounded group-hover:flex hover:bg-gray-500"
-                >
-                  <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path
-                      fill-rule="evenodd"
-                      d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                      clip-rule="evenodd"
-                    ></path>
-                  </svg>
-                </button>
               </div>
             </div>
           </div>

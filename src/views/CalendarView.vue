@@ -27,12 +27,10 @@ const submitDates = () => {
 </script>
 
 <template>
-  <div
-    class="container self-center mx-10 max-w-xl margin-top: m-10 p-6 bg-white shadow-lg rounded-lg"
-  >
+  <div class="container mx-auto max-w-xl mt-10 p-6 bg-white shadow-lg rounded-lg">
     <p class="text-lg text-gray-700 font-semibold padding-bottom: p-5">{{ message }}</p>
 
-    <DatePicker v-model="dates" multiple class="width: w-6/12" />
+    <DatePicker v-model="dates" multiple class="max-w-10 px-6" />
 
     <div v-if="dates.length > 0 && dates.length < 4">
       <p class="mt-4 text-blue-500">

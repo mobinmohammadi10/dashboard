@@ -14,7 +14,8 @@
     "jalaali-js": "^1.2.7",
     "vue": "^3.4.29",
     "vue-router": "^4.4.5",
-    "vue3-persian-datetime-picker": "^1.2.2"
+    "vue3-persian-datetime-picker": "^1.2.2",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.8.0",
