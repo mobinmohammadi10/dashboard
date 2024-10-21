@@ -62,7 +62,23 @@ const darkMode = inject('darkMode')
 const days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
 // People data will come from the backend, initially empty
-const people = ref([])
+const people = ref([
+  {
+    id: 1,
+    fullName: "User 1",
+    shifts: ["Morning", "Afternoon", "Morning", "Off", "Evening", "Off", "Afternoon"]
+  },
+  {
+    id: 2,
+    fullName: "User 2",
+    shifts: ["Off", "Morning", "Evening", "Afternoon", "Morning", "Morning", "Off"]
+  },
+  {
+    id: 3,
+    fullName: "User 3",
+    shifts: ["Afternoon", "Off", "Off", "Evening", "Afternoon", "Morning", "Evening"]
+  }
+])
 
 // Fetch data from backend when the component is mounted
 onMounted(async () => {
