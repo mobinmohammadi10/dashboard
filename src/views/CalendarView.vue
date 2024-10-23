@@ -1,17 +1,17 @@
 <template>
-  <div class="container mx-auto p-4">
+  <div :class="darkModeClass + ' container mx-auto p-4'">
     <!-- Title -->
     <h1 class="text-2xl font-bold text-center mb-4">Enter your suggestions and limitations for your shifts</h1>
 
     <!-- Calendar Header -->
     <div class="flex justify-between items-center mb-4">
-      <button @click="prevMonth" class="p-2 bg-gray-200 rounded hover:bg-gray-300">
+      <button @click="prevMonth" class="p-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
         &lt;
       </button>
       <div class="text-xl font-bold">
         {{ months[month] }} {{ year }}
       </div>
-      <button @click="nextMonth" class="p-2 bg-gray-200 rounded hover:bg-gray-300">
+      <button @click="nextMonth" class="p-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
         &gt;
       </button>
     </div>
@@ -30,121 +30,199 @@
       <div
         v-for="date in daysInMonth"
         :key="date"
-        class="p-4 border rounded-lg flex flex-col items-center justify-between"
-        :class="isToday(date) ? 'bg-blue-100' : 'bg-white'"
+        class="p-4 border rounded-lg flex flex-col items-center justify-between dark:bg-gray-800"
+        :class="[isToday(date) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-700']"
       >
         <div class="text-lg font-bold">{{ date }}</div>
-        
-        <!-- Suggestion and Limitation Buttons -->
-        <div class="flex mt-2 space-x-2">
-          <!-- Green Button for Suggestion -->
-          <button
-            @click="setOption(date, 'suggestion')"
-            :class="['p-2 rounded-full', isSuggestion(date) ? 'bg-green-500 text-white' : 'bg-green-200']"
-            title="Suggestion"
-          >
-            S
-          </button>
 
-          <!-- Red Button for Limitation -->
-          <button
-            @click="setOption(date, 'limitation')"
-            :class="['p-2 rounded-full', isLimitation(date) ? 'bg-red-500 text-white' : 'bg-red-200']"
-            title="Limitation"
-          >
-            L
-          </button>
-        </div>
+<!-- Suggestion and Limitation Buttons -->
+<div class="flex mt-2 space-x-2">
+  <!-- Green Button for Suggestion -->
+  <button
+    @click="setOption(date, 'suggestion')"
+    :class="[
+      'p-2 rounded-full transition-colors duration-200',
+      isSuggestion(date) ? 'bg-green-600 text-white' : 'bg-green-200 dark:bg-green-700 dark:text-black'
+    ]"
+    title="Suggestion"
+    :disabled="selectedCount >= maxSelection && !isSuggestion(date) && !isLimitation(date)"
+  >
+    S
+  </button>
+
+  <!-- Red Button for Limitation -->
+  <button
+    @click="setOption(date, 'limitation')"
+    :class="[
+      'p-2 rounded-full transition-colors duration-200',
+      isLimitation(date) ? 'bg-red-600 text-white' : 'bg-red-200 dark:bg-red-700 dark:text-black'
+    ]"
+    title="Limitation"
+    :disabled="selectedCount >= maxSelection && !isSuggestion(date) && !isLimitation(date)"
+  >
+    L
+  </button>
+</div>
+
       </div>
+    </div>
+
+    <!-- Save Button and Selection Info -->
+    <div class="mt-4 flex justify-between items-center">
+      <div class="text-red-500" v-if="selectedCount >= maxSelection">You have reached the limit of {{ maxSelection }} selections!</div>
+      <div>Selected: {{ selectedCount }}/{{ maxSelection }}</div>
+      <button 
+        @click="saveSelections"
+        class="p-3 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
+        :disabled="selectedCount === 0"
+      >
+        Save Selections
+      </button>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      month: new Date().getMonth(),
-      year: new Date().getFullYear(),
-      selectedOptions: new Map(), // Using Map for reactivity
-      daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      months: [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ],
-    };
-  },
-  computed: {
-    daysInMonth() {
-      const days = new Date(this.year, this.month + 1, 0).getDate();
-      return Array.from({ length: days }, (_, i) => i + 1);
-    },
-    leadingEmptyDays() {
-      const firstDayOfMonth = new Date(this.year, this.month, 1).getDay();
-      return firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
-    }
-  },
-  methods: {
-    prevMonth() {
-      if (this.month === 0) {
-        this.month = 11;
-        this.year--;
-      } else {
-        this.month--;
-      }
-    },
-    nextMonth() {
-      if (this.month === 11) {
-        this.month = 0;
-        this.year++;
-      } else {
-        this.month++;
-      }
-    },
-    // Set the selected option for a given date
-    setOption(date, option) {
-      const dateStr = `${this.year}-${this.month + 1}-${date}`; // Adjust the month number to be 1-based
-      console.log(`Clicked on: ${dateStr} | Option: ${option}`);
+<script setup>
+import { ref, computed, inject, onMounted } from 'vue';
 
-      // Check if date already has a selected option
-      if (this.selectedOptions.has(dateStr)) {
-        const currentOption = this.selectedOptions.get(dateStr);
-        
-        // If the same option is clicked, remove it (toggle)
-        if (currentOption === option) {
-          this.selectedOptions.delete(dateStr);
-          console.log(`Deselected ${option} for ${dateStr}`);
-        } else {
-          // Otherwise, update the option
-          this.selectedOptions.set(dateStr, option);
-          console.log(`Updated ${option} for ${dateStr}`);
-        }
-      } else {
-        // If no option is set, select it
-        this.selectedOptions.set(dateStr, option);
-        console.log(`Selected ${option} for ${dateStr}`);
-      }
-    },
-    // Check if the current option is "suggestion"
-    isSuggestion(date) {
-      const dateStr = `${this.year}-${this.month + 1}-${date}`; // Adjust the month number to be 1-based
-      return this.selectedOptions.get(dateStr) === 'suggestion';
-    },
-    // Check if the current option is "limitation"
-    isLimitation(date) {
-      const dateStr = `${this.year}-${this.month + 1}-${date}`; // Adjust the month number to be 1-based
-      return this.selectedOptions.get(dateStr) === 'limitation';
-    },
-    isToday(date) {
-      const today = new Date();
-      return (
-        today.getDate() === date &&
-        today.getMonth() === this.month &&
-        today.getFullYear() === this.year
-      );
+const darkMode = inject('darkMode');
+const isDarkMode = darkMode || ref(false);
+
+// Reactive calendar data and methods
+const month = ref(new Date().getMonth());
+const year = ref(new Date().getFullYear());
+const selectedOptions = ref(new Map()); // Store selections for the current month
+
+// Max number of days a user can select per month (suggestions + limitations)
+const maxSelection = 20;
+
+const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const months = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+// Compute the number of days in the current month
+const daysInMonth = computed(() => {
+  const days = new Date(year.value, month.value + 1, 0).getDate();
+  return Array.from({ length: days }, (_, i) => i + 1);
+});
+
+// Compute leading empty days (from previous month)
+const leadingEmptyDays = computed(() => {
+  const firstDayOfMonth = new Date(year.value, month.value, 1).getDay();
+  return firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+});
+
+// Go to the previous month
+const prevMonth = () => {
+  if (month.value === 0) {
+    month.value = 11;
+    year.value--;
+  } else {
+    month.value--;
+  }
+  loadSelections(); // Load saved selections for the current month
+};
+
+// Go to the next month
+const nextMonth = () => {
+  if (month.value === 11) {
+    month.value = 0;
+    year.value++;
+  } else {
+    month.value++;
+  }
+  loadSelections(); // Load saved selections for the current month
+};
+
+// Set the selected option (suggestion or limitation) for a given date
+const setOption = (date, option) => {
+  const dateStr = `${year.value}-${month.value + 1}-${date}`; // Adjust the month number to be 1-based
+  console.log(`Clicked on: ${dateStr} | Option: ${option}`);
+
+  // Check the current count of selections for the current month
+  const currentCount = selectedCount.value;
+
+  if (selectedOptions.value.has(dateStr)) {
+    const currentOption = selectedOptions.value.get(dateStr);
+
+    if (currentOption === option) {
+      selectedOptions.value.delete(dateStr); // Deselect
+      console.log(`Deselected ${option} for ${dateStr}`);
+    } else {
+      selectedOptions.value.set(dateStr, option); // Update
+      console.log(`Updated ${option} for ${dateStr}`);
     }
+  } else {
+    if (currentCount >= maxSelection) {
+      alert(`You can only select up to ${maxSelection} dates this month!`);
+      return; // Prevent selecting more than the max limit
+    }
+    selectedOptions.value.set(dateStr, option); // Select
+    console.log(`Selected ${option} for ${dateStr}`);
+  }
+
+  saveToLocalStorage(); // Save selections to localStorage after each change
+};
+
+// Save selections to localStorage
+const saveToLocalStorage = () => {
+  const key = `${year.value}-${month.value + 1}`; // Key based on year and month
+  localStorage.setItem(key, JSON.stringify(Array.from(selectedOptions.value.entries())));
+};
+
+// Load selections from localStorage when the component is mounted or when switching months
+const loadSelections = () => {
+  const key = `${year.value}-${month.value + 1}`; // Key based on year and month
+  const selections = localStorage.getItem(key);
+  if (selections) {
+    selectedOptions.value = new Map(JSON.parse(selections));
+  } else {
+    selectedOptions.value.clear(); // Clear selections if none found
   }
 };
+
+// Save selections (for now, logging them as an example)
+const saveSelections = () => {
+  // Here you would send `selectedOptions.value` to the user's page/API
+  console.log("Saving selections:", selectedOptions.value);
+  alert('Selections saved successfully!');
+};
+
+// Computed properties to track selected options
+const isSuggestion = (date) => {
+  const dateStr = `${year.value}-${month.value + 1}-${date}`;
+  return selectedOptions.value.get(dateStr) === 'suggestion';
+};
+
+const isLimitation = (date) => {
+  const dateStr = `${year.value}-${month.value + 1}-${date}`;
+  return selectedOptions.value.get(dateStr) === 'limitation';
+};
+
+// Check if the given date is today
+const isToday = (date) => {
+  const today = new Date();
+  return (
+    today.getDate() === date &&
+    today.getMonth() === month.value &&
+    today.getFullYear() === year.value
+  );
+};
+
+// Total selected count (suggestions + limitations)
+const selectedCount = computed(() => {
+  return selectedOptions.value.size;
+});
+
+// Computed class for handling dark mode
+const darkModeClass = computed(() => (isDarkMode.value ? 'dark' : ''));
+
+// Load selections when the component is mounted
+onMounted(() => {
+  loadSelections();
+});
 </script>
 
 <style scoped>
@@ -160,5 +238,19 @@ button {
   min-width: 36px;
   min-height: 36px;
   transition: background-color 0.2s ease;
+}
+
+/* Add dark mode specific styles */
+.dark {
+  background-color: #1f2937; /* Dark gray for background */
+  color: #e5e7eb; /* Light text color */
+}
+
+.dark h1 {
+  color: #f9fafb; /* Light title */
+}
+
+.dark .border {
+  border-color: #374151; /* Adjust border color */
 }
 </style>
