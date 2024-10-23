@@ -6,7 +6,27 @@
     <!-- Personal Information Section -->
     <h2 class="text-2xl font-semibold mb-6">Personal Information</h2>
     <div class="flex items-center space-x-4 mb-6">
-      <img class="w-20 h-20 rounded-full object-cover" :src="user.pictureUrl" alt="User Picture">
+      <input 
+        type="file" 
+        accept="image/*" 
+        @change="onFileChange" 
+        class="hidden" 
+        ref="fileInput" 
+      />
+      <div class="flex flex-col items-center">
+        <img 
+          class="w-20 h-20 rounded-full object-cover cursor-pointer border-2 border-gray-300 dark:border-gray-600" 
+          :src="user.pictureUrl" 
+          alt="User Picture" 
+          @click="triggerFileInput"
+        >
+        <button 
+          v-if="user.pictureUrl !== 'https://via.placeholder.com/150'" 
+          @click="confirmDeletePhoto" 
+          class="mt-2 text-red-500 hover:underline">
+          Delete Photo
+        </button>
+      </div>
       <div class="flex-1">
         <label class="block text-sm font-medium mb-1">First Name</label>
         <input type="text" v-model="user.firstName" class="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
@@ -77,13 +97,13 @@
 </template>
 
 <script setup>
-import { ref, inject, onMounted } from 'vue'
+import { ref, inject, onMounted } from 'vue';
 
 const user = ref({
   firstName: '',
   lastName: '',
   email: '',
-  pictureUrl: 'https://via.placeholder.com/150'
+  pictureUrl: localStorage.getItem('userPictureUrl') || 'https://via.placeholder.com/150' // Load from localStorage or use default image
 });
 
 // Inject global dark mode
@@ -98,7 +118,45 @@ const newPassword = ref('');
 const confirmPassword = ref('');
 const logoutPassword = ref('');
 
-const savePersonalInfo = () => {};
+// Function to handle file changes (upload)
+const onFileChange = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      user.value.pictureUrl = e.target.result; 
+      localStorage.setItem('userPictureUrl', e.target.result);
+    };
+    reader.readAsDataURL(file); // Read the file as a data URL
+  }
+};
+
+// Function to trigger file input
+const triggerFileInput = () => {
+  const fileInput = document.querySelector('input[type="file"]'); 
+  if (fileInput) {
+    fileInput.click(); 
+  }
+};
+
+// Function to confirm before deleting photo
+const confirmDeletePhoto = () => {
+  const confirmDelete = confirm('Are you sure you want to delete your profile photo?');
+  if (confirmDelete) {
+    deletePhoto();
+  }
+};
+
+// Function to delete photo
+const deletePhoto = () => {
+  user.value.pictureUrl = 'https://via.placeholder.com/150'; 
+  localStorage.setItem('userPictureUrl', 'https://via.placeholder.com/150');
+  alert('Profile photo has been deleted.'); 
+};
+
+const savePersonalInfo = () => {
+  
+};
 
 const toggleDarkMode = () => {
   darkMode.value = !darkMode.value;
@@ -118,10 +176,9 @@ const changePassword = () => {
   if (newPassword.value !== confirmPassword.value) {
     alert('Passwords do not match.');
   } else {
-
+    
   }
 };
-
 
 const logOut = () => {
   if (logoutPassword.value === '') {
@@ -131,7 +188,7 @@ const logOut = () => {
   }
 };
 
-
+// On component mount, set the font size from localStorage
 onMounted(() => {
   document.documentElement.style.fontSize = fontSize.value + 'px';
 });
