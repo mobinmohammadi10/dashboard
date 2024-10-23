@@ -1,38 +1,48 @@
 <template>
-  <div :class="darkMode ? 'dark' : ''" class="min-h-screen p-6 bg-gray-100 dark:bg-gray-900">
+  <div :class="['min-h-screen p-6', darkMode ? 'dark' : '']"> <!-- Added min-h-screen for full-page coverage -->
     <!-- Title -->
     <h1 class="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Dashboard</h1>
 
-    <!-- List of People Assigned to Shifts -->
+    <!-- List of People Who Need to Give Shifts -->
     <div class="mb-6">
       <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-200">People Assigned to Shifts</h2>
       <ul class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md">
+        <!-- Loop through the people from backend -->
         <li v-for="person in people" :key="person.id" class="border-b py-2 border-gray-300 dark:border-gray-700">
-          <span class="font-medium text-gray-900 dark:text-gray-100">{{ person.id }} - </span>
+          <span class="font-medium text-gray-900 dark:text-white">{{ person.id }} - </span>
           <span class="text-gray-700 dark:text-gray-300">{{ person.fullName }}</span>
         </li>
       </ul>
     </div>
 
-    <!-- Weekly Schedule -->
+    <!-- Schedule Grid -->
     <div>
       <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-200">Weekly Schedule</h2>
       <div class="overflow-x-auto">
-        <table class="min-w-full border-collapse table-auto">
+        <table class="min-w-full border-collapse table-auto bg-white dark:bg-gray-800">
           <thead>
             <tr class="bg-gray-200 dark:bg-gray-700">
               <th class="p-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">Person</th>
-              <th class="p-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" v-for="day in days" :key="day">
+              <th
+                class="p-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                v-for="day in days"
+                :key="day"
+              >
                 {{ day }}
               </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="person in people" :key="person.id">
+            <tr v-for="person in people" :key="person.id" class="bg-white dark:bg-gray-900">
               <td class="p-2 border border-gray-300 dark:border-gray-600 font-semibold text-gray-900 dark:text-white">
                 {{ person.fullName }}
               </td>
-              <td class="p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300" v-for="(shift, index) in person.shifts" :key="index">
+              <!-- Loop through shifts for each person -->
+              <td
+                class="p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
+                v-for="(shift, index) in person.shifts"
+                :key="index"
+              >
                 {{ shift }}
               </td>
             </tr>
@@ -51,7 +61,7 @@ const darkMode = inject('darkMode')
 
 const days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
-// Sample people data (Replace this with backend data)
+
 const people = ref([
   {
     id: 1,
@@ -70,19 +80,62 @@ const people = ref([
   }
 ])
 
-// Apply dark mode to the body element on mount
-onMounted(() => {
-  if (darkMode) {
-    document.body.classList.add('dark')
-  } else {
-    document.body.classList.remove('dark')
+// Fetch data from backend when the component is mounted
+onMounted(async () => {
+  try {
+    // Make your API call to fetch the people and their shifts here
+    const response = await fetch('/api/people')
+    const data = await response.json()
+
+    // Assign the fetched data to the people ref
+    people.value = data
+  } catch (error) {
+    console.error("Error fetching people data:", error)
   }
 })
 </script>
 
 <style scoped>
-/* Ensure minimum screen height to handle different content sizes */
-.min-h-screen {
-  min-height: 100vh;
+/* Ensure dark mode is applied to the entire page */
+html, body {
+  height: 100%;
+}
+
+.dark {
+  background-color: #1a202c;
+  color: #f7fafc;
+}
+
+.dark h1, .dark h2 {
+  color: #f7fafc;
+}
+
+.dark table thead {
+  background-color: #4a5568;
+}
+
+.dark table tbody tr {
+  background-color: #1f2937;
+}
+
+.dark table td, .dark table th {
+  color: #f7fafc;
+  border-color: #4a5568;
+}
+
+.dark table tbody tr:hover {
+  background-color: #2d3748;
+}
+
+.dark .bg-gray-800 {
+  background-color: #2d3748;
+}
+
+.dark .bg-gray-900 {
+  background-color: #1f2937;
+}
+
+.dark .bg-gray-700 {
+  background-color: #4a5568;
 }
 </style>
