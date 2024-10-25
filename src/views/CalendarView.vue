@@ -35,35 +35,34 @@
       >
         <div class="text-lg font-bold">{{ date }}</div>
 
-<!-- Suggestion and Limitation Buttons -->
-<div class="flex mt-2 space-x-2">
-  <!-- Green Button for Suggestion -->
-  <button
-    @click="setOption(date, 'suggestion')"
-    :class="[
-      'p-2 rounded-full transition-colors duration-200',
-      isSuggestion(date) ? 'bg-green-600 text-white' : 'bg-green-200 dark:bg-green-700 dark:text-black'
-    ]"
-    title="Suggestion"
-    :disabled="selectedCount >= maxSelection && !isSuggestion(date) && !isLimitation(date)"
-  >
-    S
-  </button>
+        <!-- Suggestion and Limitation Buttons -->
+        <div class="flex mt-2 space-x-2">
+          <!-- Green Button for Suggestion -->
+          <button
+            @click="setOption(date, 'suggestion')"
+            :class="[
+              'p-2 rounded-full transition-colors duration-200',
+              isSuggestion(date) ? 'bg-green-600 text-white' : 'bg-green-200 dark:bg-green-700 dark:text-black'
+            ]"
+            title="Suggestion"
+            :disabled="selectedCount >= maxSelection && !isSuggestion(date) && !isLimitation(date)"
+          >
+            S
+          </button>
 
-  <!-- Red Button for Limitation -->
-  <button
-    @click="setOption(date, 'limitation')"
-    :class="[
-      'p-2 rounded-full transition-colors duration-200',
-      isLimitation(date) ? 'bg-red-600 text-white' : 'bg-red-200 dark:bg-red-700 dark:text-black'
-    ]"
-    title="Limitation"
-    :disabled="selectedCount >= maxSelection && !isSuggestion(date) && !isLimitation(date)"
-  >
-    L
-  </button>
-</div>
-
+          <!-- Red Button for Limitation -->
+          <button
+            @click="setOption(date, 'limitation')"
+            :class="[
+              'p-2 rounded-full transition-colors duration-200',
+              isLimitation(date) ? 'bg-red-600 text-white' : 'bg-red-200 dark:bg-red-700 dark:text-black'
+            ]"
+            title="Limitation"
+            :disabled="selectedCount >= maxSelection && !isSuggestion(date) && !isLimitation(date)"
+          >
+            L
+          </button>
+        </div>
       </div>
     </div>
 
@@ -91,7 +90,7 @@ const isDarkMode = darkMode || ref(false);
 // Reactive calendar data and methods
 const month = ref(new Date().getMonth());
 const year = ref(new Date().getFullYear());
-const selectedOptions = ref(new Map()); // Store selections for the current month
+const currentSelections = ref(new Map()); // Store temporary selections for the current month
 
 // Max number of days a user can select per month (suggestions + limitations)
 const maxSelection = 20;
@@ -141,64 +140,49 @@ const setOption = (date, option) => {
   const dateStr = `${year.value}-${month.value + 1}-${date}`; // Adjust the month number to be 1-based
   console.log(`Clicked on: ${dateStr} | Option: ${option}`);
 
-  // Check the current count of selections for the current month
-  const currentCount = selectedCount.value;
-
-  if (selectedOptions.value.has(dateStr)) {
-    const currentOption = selectedOptions.value.get(dateStr);
+  if (currentSelections.value.has(dateStr)) {
+    const currentOption = currentSelections.value.get(dateStr);
 
     if (currentOption === option) {
-      selectedOptions.value.delete(dateStr); // Deselect
+      currentSelections.value.delete(dateStr); // Deselect
       console.log(`Deselected ${option} for ${dateStr}`);
     } else {
-      selectedOptions.value.set(dateStr, option); // Update
+      currentSelections.value.set(dateStr, option); // Update
       console.log(`Updated ${option} for ${dateStr}`);
     }
   } else {
-    if (currentCount >= maxSelection) {
+    if (selectedCount.value >= maxSelection) {
       alert(`You can only select up to ${maxSelection} dates this month!`);
       return; // Prevent selecting more than the max limit
     }
-    selectedOptions.value.set(dateStr, option); // Select
+    currentSelections.value.set(dateStr, option); // Select
     console.log(`Selected ${option} for ${dateStr}`);
   }
-
-  saveToLocalStorage(); // Save selections to localStorage after each change
 };
 
-// Save selections to localStorage
-const saveToLocalStorage = () => {
+// Save selections to localStorage only on button click
+const saveSelections = () => {
   const key = `${year.value}-${month.value + 1}`; // Key based on year and month
-  localStorage.setItem(key, JSON.stringify(Array.from(selectedOptions.value.entries())));
+  localStorage.setItem(key, JSON.stringify(Array.from(currentSelections.value.entries())));
+  alert('Selections saved successfully!');
 };
 
 // Load selections from localStorage when the component is mounted or when switching months
 const loadSelections = () => {
   const key = `${year.value}-${month.value + 1}`; // Key based on year and month
   const selections = localStorage.getItem(key);
-  if (selections) {
-    selectedOptions.value = new Map(JSON.parse(selections));
-  } else {
-    selectedOptions.value.clear(); // Clear selections if none found
-  }
-};
-
-// Save selections (for now, logging them as an example)
-const saveSelections = () => {
-  // Here you would send `selectedOptions.value` to the user's page/API
-  console.log("Saving selections:", selectedOptions.value);
-  alert('Selections saved successfully!');
+  currentSelections.value = selections ? new Map(JSON.parse(selections)) : new Map();
 };
 
 // Computed properties to track selected options
 const isSuggestion = (date) => {
   const dateStr = `${year.value}-${month.value + 1}-${date}`;
-  return selectedOptions.value.get(dateStr) === 'suggestion';
+  return currentSelections.value.get(dateStr) === 'suggestion';
 };
 
 const isLimitation = (date) => {
   const dateStr = `${year.value}-${month.value + 1}-${date}`;
-  return selectedOptions.value.get(dateStr) === 'limitation';
+  return currentSelections.value.get(dateStr) === 'limitation';
 };
 
 // Check if the given date is today
@@ -213,7 +197,7 @@ const isToday = (date) => {
 
 // Total selected count (suggestions + limitations)
 const selectedCount = computed(() => {
-  return selectedOptions.value.size;
+  return currentSelections.value.size;
 });
 
 // Computed class for handling dark mode
@@ -227,7 +211,7 @@ onMounted(() => {
 
 <style scoped>
 .container {
-  max-width: 800px;
+  max-width: 1500px;
 }
 
 .grid {
@@ -242,7 +226,7 @@ button {
 
 /* Add dark mode specific styles */
 .dark {
-  background-color: #1f2937; /* Dark gray for background */
+  background-color: #0c0c0d; /* Dark for background */
   color: #e5e7eb; /* Light text color */
 }
 
