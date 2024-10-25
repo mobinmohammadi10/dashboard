@@ -1,63 +1,256 @@
-<script setup>
-import { ref } from 'vue'
-import { jalaaliToDateObject } from 'jalaali-js'
-
-// Declare the message
-const message = ref('Please enter your preferred dates for your shifts:')
-const dateConfirmations = ref([])
-
-// Declare dates to store the selected dates
-const dates = ref([])
-
-// Function to clear the selected dates
-const clearDates = () => {
-  dates.value = []
-}
-
-const submitDates = () => {
-  for (const date of dates.value) {
-    let splitedDate = parseInt(date.split('/'))
-    dateConfirmations.value.push(
-      jalaaliToDateObject(splitedDate[0], splitedDate[1], splitedDate[2])
-    )
-  }
-
-  // Todo: send date confirmations to the server
-}
-</script>
-
 <template>
-  <div class="container mx-auto max-w-xl mt-10 p-6 bg-white shadow-lg rounded-lg">
-    <p class="text-lg text-gray-700 font-semibold padding-bottom: p-5">{{ message }}</p>
+  <div :class="darkModeClass + ' container mx-auto p-4'">
+    <!-- Title -->
+    <h1 class="text-2xl font-bold text-center mb-4">Enter your suggestions and limitations for your shifts</h1>
 
-    <DatePicker v-model="dates" multiple class="max-w-10 px-6" />
-
-    <div v-if="dates.length > 0 && dates.length < 4">
-      <p class="mt-4 text-blue-500">
-        Selected Dates:
-        <span class="font-bold" v-for="date in dates" :key="date.id"
-          ><hr />
-          {{ date }}</span
-        >
-      </p>
-      <button
-        @click="clearDates"
-        class="mt-4 w-full bg-red-500 text-white font-semibold py-2 px-4 rounded-lg"
-      >
-        Clear Selected Dates
+    <!-- Calendar Header -->
+    <div class="flex justify-between items-center mb-4">
+      <button @click="prevMonth" class="p-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
+        &lt;
       </button>
-      <button
-        @click="submitDates"
-        class="mt-4 w-full bg-green-500 text-white font-semibold py-2 px-4 rounded-lg"
-      >
-        Submit Selected Dates
+      <div class="text-xl font-bold">
+        {{ months[month] }} {{ year }}
+      </div>
+      <button @click="nextMonth" class="p-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
+        &gt;
       </button>
     </div>
 
-    <p v-else-if="dates.length >= 4" class="mt-4 text-red-500 font-semibold">
-      You've selected too many dates. Please select 3 or fewer.
-    </p>
+    <!-- Calendar Grid -->
+    <div class="grid grid-cols-7 gap-4">
+      <!-- Days of the Week -->
+      <div v-for="(day, index) in daysOfWeek" :key="index" class="text-center font-semibold">
+        {{ day }}
+      </div>
 
-    <p v-else class="mt-4 text-gray-500">No dates selected.</p>
+      <!-- Placeholder for previous month's days -->
+      <div v-for="empty in leadingEmptyDays" :key="'empty-' + empty" class="p-4"></div>
+
+      <!-- Days of the month -->
+      <div
+        v-for="date in daysInMonth"
+        :key="date"
+        class="p-4 border rounded-lg flex flex-col items-center justify-between dark:bg-gray-800"
+        :class="[isToday(date) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-700']"
+      >
+        <div class="text-lg font-bold">{{ date }}</div>
+
+<!-- Suggestion and Limitation Buttons -->
+<div class="flex mt-2 space-x-2">
+  <!-- Green Button for Suggestion -->
+  <button
+    @click="setOption(date, 'suggestion')"
+    :class="[
+      'p-2 rounded-full transition-colors duration-200',
+      isSuggestion(date) ? 'bg-green-600 text-white' : 'bg-green-200 dark:bg-green-700 dark:text-black'
+    ]"
+    title="Suggestion"
+    :disabled="selectedCount >= maxSelection && !isSuggestion(date) && !isLimitation(date)"
+  >
+    S
+  </button>
+
+  <!-- Red Button for Limitation -->
+  <button
+    @click="setOption(date, 'limitation')"
+    :class="[
+      'p-2 rounded-full transition-colors duration-200',
+      isLimitation(date) ? 'bg-red-600 text-white' : 'bg-red-200 dark:bg-red-700 dark:text-black'
+    ]"
+    title="Limitation"
+    :disabled="selectedCount >= maxSelection && !isSuggestion(date) && !isLimitation(date)"
+  >
+    L
+  </button>
+</div>
+
+      </div>
+    </div>
+
+    <!-- Save Button and Selection Info -->
+    <div class="mt-4 flex justify-between items-center">
+      <div class="text-red-500" v-if="selectedCount >= maxSelection">You have reached the limit of {{ maxSelection }} selections!</div>
+      <div>Selected: {{ selectedCount }}/{{ maxSelection }}</div>
+      <button 
+        @click="saveSelections"
+        class="p-3 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
+        :disabled="selectedCount === 0"
+      >
+        Save Selections
+      </button>
+    </div>
   </div>
 </template>
+
+<script setup>
+import { ref, computed, inject, onMounted } from 'vue';
+
+const darkMode = inject('darkMode');
+const isDarkMode = darkMode || ref(false);
+
+// Reactive calendar data and methods
+const month = ref(new Date().getMonth());
+const year = ref(new Date().getFullYear());
+const selectedOptions = ref(new Map()); // Store selections for the current month
+
+// Max number of days a user can select per month (suggestions + limitations)
+const maxSelection = 20;
+
+const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const months = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+// Compute the number of days in the current month
+const daysInMonth = computed(() => {
+  const days = new Date(year.value, month.value + 1, 0).getDate();
+  return Array.from({ length: days }, (_, i) => i + 1);
+});
+
+// Compute leading empty days (from previous month)
+const leadingEmptyDays = computed(() => {
+  const firstDayOfMonth = new Date(year.value, month.value, 1).getDay();
+  return firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+});
+
+// Go to the previous month
+const prevMonth = () => {
+  if (month.value === 0) {
+    month.value = 11;
+    year.value--;
+  } else {
+    month.value--;
+  }
+  loadSelections(); // Load saved selections for the current month
+};
+
+// Go to the next month
+const nextMonth = () => {
+  if (month.value === 11) {
+    month.value = 0;
+    year.value++;
+  } else {
+    month.value++;
+  }
+  loadSelections(); // Load saved selections for the current month
+};
+
+// Set the selected option (suggestion or limitation) for a given date
+const setOption = (date, option) => {
+  const dateStr = `${year.value}-${month.value + 1}-${date}`; // Adjust the month number to be 1-based
+  console.log(`Clicked on: ${dateStr} | Option: ${option}`);
+
+  // Check the current count of selections for the current month
+  const currentCount = selectedCount.value;
+
+  if (selectedOptions.value.has(dateStr)) {
+    const currentOption = selectedOptions.value.get(dateStr);
+
+    if (currentOption === option) {
+      selectedOptions.value.delete(dateStr); // Deselect
+      console.log(`Deselected ${option} for ${dateStr}`);
+    } else {
+      selectedOptions.value.set(dateStr, option); // Update
+      console.log(`Updated ${option} for ${dateStr}`);
+    }
+  } else {
+    if (currentCount >= maxSelection) {
+      alert(`You can only select up to ${maxSelection} dates this month!`);
+      return; // Prevent selecting more than the max limit
+    }
+    selectedOptions.value.set(dateStr, option); // Select
+    console.log(`Selected ${option} for ${dateStr}`);
+  }
+
+  saveToLocalStorage(); // Save selections to localStorage after each change
+};
+
+// Save selections to localStorage
+const saveToLocalStorage = () => {
+  const key = `${year.value}-${month.value + 1}`; // Key based on year and month
+  localStorage.setItem(key, JSON.stringify(Array.from(selectedOptions.value.entries())));
+};
+
+// Load selections from localStorage when the component is mounted or when switching months
+const loadSelections = () => {
+  const key = `${year.value}-${month.value + 1}`; // Key based on year and month
+  const selections = localStorage.getItem(key);
+  if (selections) {
+    selectedOptions.value = new Map(JSON.parse(selections));
+  } else {
+    selectedOptions.value.clear(); // Clear selections if none found
+  }
+};
+
+// Save selections (for now, logging them as an example)
+const saveSelections = () => {
+  // Here you would send `selectedOptions.value` to the user's page/API
+  console.log("Saving selections:", selectedOptions.value);
+  alert('Selections saved successfully!');
+};
+
+// Computed properties to track selected options
+const isSuggestion = (date) => {
+  const dateStr = `${year.value}-${month.value + 1}-${date}`;
+  return selectedOptions.value.get(dateStr) === 'suggestion';
+};
+
+const isLimitation = (date) => {
+  const dateStr = `${year.value}-${month.value + 1}-${date}`;
+  return selectedOptions.value.get(dateStr) === 'limitation';
+};
+
+// Check if the given date is today
+const isToday = (date) => {
+  const today = new Date();
+  return (
+    today.getDate() === date &&
+    today.getMonth() === month.value &&
+    today.getFullYear() === year.value
+  );
+};
+
+// Total selected count (suggestions + limitations)
+const selectedCount = computed(() => {
+  return selectedOptions.value.size;
+});
+
+// Computed class for handling dark mode
+const darkModeClass = computed(() => (isDarkMode.value ? 'dark' : ''));
+
+// Load selections when the component is mounted
+onMounted(() => {
+  loadSelections();
+});
+</script>
+
+<style scoped>
+.container {
+  max-width: 800px;
+}
+
+.grid {
+  grid-template-columns: repeat(7, 1fr);
+}
+
+button {
+  min-width: 36px;
+  min-height: 36px;
+  transition: background-color 0.2s ease;
+}
+
+/* Add dark mode specific styles */
+.dark {
+  background-color: #1f2937; /* Dark gray for background */
+  color: #e5e7eb; /* Light text color */
+}
+
+.dark h1 {
+  color: #f9fafb; /* Light title */
+}
+
+.dark .border {
+  border-color: #374151; /* Adjust border color */
+}
+</style>

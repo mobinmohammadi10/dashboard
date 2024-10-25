@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6" :class="darkMode ? 'dark' : ''">
+  <div :class="['min-h-screen p-6', darkMode ? 'dark' : '']"> <!-- Added min-h-screen for full-page coverage -->
     <!-- Title -->
     <h1 class="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Dashboard</h1>
 
@@ -19,7 +19,7 @@
     <div>
       <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-200">Weekly Schedule</h2>
       <div class="overflow-x-auto">
-        <table class="min-w-full border-collapse table-auto">
+        <table class="min-w-full border-collapse table-auto bg-white dark:bg-gray-800">
           <thead>
             <tr class="bg-gray-200 dark:bg-gray-700">
               <th class="p-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">Person</th>
@@ -33,7 +33,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="person in people" :key="person.id">
+            <tr v-for="person in people" :key="person.id" class="bg-white dark:bg-gray-900">
               <td class="p-2 border border-gray-300 dark:border-gray-600 font-semibold text-gray-900 dark:text-white">
                 {{ person.fullName }}
               </td>
@@ -61,14 +61,30 @@ const darkMode = inject('darkMode')
 
 const days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
-// People data will come from the backend, initially empty
-const people = ref([])
+
+const people = ref([
+  {
+    id: 1,
+    fullName: "User 1",
+    shifts: ["Morning", "Afternoon", "Morning", "Off", "Evening", "Off", "Afternoon"]
+  },
+  {
+    id: 2,
+    fullName: "User 2",
+    shifts: ["Off", "Morning", "Evening", "Afternoon", "Morning", "Morning", "Off"]
+  },
+  {
+    id: 3,
+    fullName: "User 3",
+    shifts: ["Afternoon", "Off", "Off", "Evening", "Afternoon", "Morning", "Evening"]
+  }
+])
 
 // Fetch data from backend when the component is mounted
 onMounted(async () => {
   try {
     // Make your API call to fetch the people and their shifts here
-    const response = await fetch('/api/people') // Replace with your actual API endpoint
+    const response = await fetch('/api/people')
     const data = await response.json()
 
     // Assign the fetched data to the people ref
@@ -80,4 +96,46 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Ensure dark mode is applied to the entire page */
+html, body {
+  height: 100%;
+}
+
+.dark {
+  background-color: #1a202c;
+  color: #f7fafc;
+}
+
+.dark h1, .dark h2 {
+  color: #f7fafc;
+}
+
+.dark table thead {
+  background-color: #4a5568;
+}
+
+.dark table tbody tr {
+  background-color: #1f2937;
+}
+
+.dark table td, .dark table th {
+  color: #f7fafc;
+  border-color: #4a5568;
+}
+
+.dark table tbody tr:hover {
+  background-color: #2d3748;
+}
+
+.dark .bg-gray-800 {
+  background-color: #2d3748;
+}
+
+.dark .bg-gray-900 {
+  background-color: #1f2937;
+}
+
+.dark .bg-gray-700 {
+  background-color: #4a5568;
+}
 </style>
