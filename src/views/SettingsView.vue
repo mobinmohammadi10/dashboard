@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="max-w-2xl mx-auto p-8 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg shadow-lg transition-all duration-300"
+    class="w-full min-h-screen mx-0 p-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-300"
     :style="{ fontSize: fontSize + 'px' }"> <!-- Directly apply font size -->
     
     <!-- Personal Information Section -->
@@ -15,7 +15,7 @@
       />
       <div class="flex flex-col items-center">
         <img 
-          class="w-20 h-20 rounded-full object-cover cursor-pointer border-2 border-gray-300 dark:border-gray-600" 
+          class="w-40 h-40 rounded-full object-cover cursor-pointer border-2 border-gray-300 dark:border-gray-600" 
           :src="user.pictureUrl" 
           alt="User Picture" 
           @click="triggerFileInput"
@@ -29,13 +29,13 @@
       </div>
       <div class="flex-1">
         <label class="block text-sm font-medium mb-1">First Name</label>
-        <input type="text" v-model="user.firstName" class="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+        <input type="text" v-model="user.firstName" class="w-full p-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600">
 
         <label class="block text-sm font-medium mb-1 mt-4">Last Name</label>
-        <input type="text" v-model="user.lastName" class="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+        <input type="text" v-model="user.lastName" class="w-full p-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600">
 
         <label class="block text-sm font-medium mb-1 mt-4">Email Address</label>
-        <input type="email" v-model="user.email" class="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+        <input type="email" v-model="user.email" class="w-full p-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600">
       </div>
     </div>
     <button @click="savePersonalInfo" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition mb-8">
@@ -106,8 +106,8 @@ const user = ref({
   pictureUrl: localStorage.getItem('userPictureUrl') || 'https://via.placeholder.com/150' // Load from localStorage or use default image
 });
 
-// Inject global dark mode
-const darkMode = inject('darkMode');
+
+const darkMode = ref(localStorage.getItem('darkMode') === 'true'); // Load initial state
 
 // Font size state
 const fontSize = ref(localStorage.getItem('fontSize') ? Number(localStorage.getItem('fontSize')) : 16); // Load from localStorage or default to 16px
@@ -189,13 +189,40 @@ const logOut = () => {
 };
 
 // On component mount, set the font size from localStorage
+//onMounted(() => {
+  //document.documentElement.style.fontSize = fontSize.value + 'px';
+//});
 onMounted(() => {
-  document.documentElement.style.fontSize = fontSize.value + 'px';
+  if (darkMode.value) {
+    document.documentElement.classList.add('dark');
+  }
 });
+
 </script>
 
 <style scoped>
-body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  color: #f0f0f0;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scrollbars */
+}
+
+html.dark {
+  background-color: #000;
+}
+
+body.dark {
+  background-color: #000; /* Dark background across all modes */
+}
+html.dark .bg-white {
+  background-color: #171717; /* Replace any white backgrounds with dark shades */
+}
+
+html.dark .text-gray-900 {
+  color: #f0f0f0; /* Ensure dark text becomes light */
 }
 </style>
