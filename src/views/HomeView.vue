@@ -1,5 +1,5 @@
 <template>
-  <div :class="['min-h-screen p-6', darkMode ? 'dark' : '']"> <!-- Added min-h-screen for full-page coverage -->
+  <div :class="['min-h-screen px-20 pl-20 py-10', darkMode ? 'dark' : '']"> <!-- Added min-h-screen for full-page coverage -->
     <!-- Title -->
     <h1 class="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Dashboard</h1>
 

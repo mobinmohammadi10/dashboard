@@ -87,7 +87,7 @@ i {
 .tooltip {
   position: absolute;
   z-index: 3;
-  background: var(--items-tooltip-color);
+  background: #ffffff;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
   padding: 6px 12px;
   border-radius: 4px;

@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="w-full min-h-screen mx-0 p-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-300"
+    class="w-full min-h-screen mx-0 px-20 pl-20 py-10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-300"
     :style="{ fontSize: fontSize + 'px' }"> <!-- Directly apply font size -->
     
     <!-- Personal Information Section -->
