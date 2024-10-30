@@ -1,9 +1,12 @@
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import MenuItem from './MenuItem.vue'
 import { useRouter } from 'vue-router'
+import { themeStore } from '@/stores/themeStore'
 
 const router = useRouter()
+
+const theme = themeStore()
 
 const props = defineProps({
   isMenuOpen: {
@@ -29,14 +32,6 @@ const props = defineProps({
   isPaddingLeft: {
     type: Boolean,
     default: true
-  },
-  menuOpenedPaddingLeftBody: {
-    type: String,
-    default: '250px'
-  },
-  menuClosedPaddingLeftBody: {
-    type: String,
-    default: '78px'
   },
   menuItems: {
     type: Array,
@@ -143,7 +138,7 @@ const props = defineProps({
 
 const emit = defineEmits(['search-input-emit', 'menuItemClcked', 'button-exit-clicked'])
 
-const isOpened = ref(false)
+// const isOpened = ref(false)
 
 const cssVars = computed(() => ({
   '--bg-color': props.bgColor,
@@ -159,11 +154,11 @@ const cssVars = computed(() => ({
 }))
 
 const toggleMenu = () => {
-  isOpened.value = !isOpened.value
+  theme.toggleSideBar()
 }
 
 const openMenu = () => {
-  isOpened.value = true
+  theme.setSidebarValue(true)
 }
 
 const onSearchInput = (event) => {
@@ -179,13 +174,8 @@ const exitButtonClicked = () => {
 }
 
 onMounted(() => {
-  isOpened.value = props.isMenuOpen
+  theme.setSidebarValue(props.isMenuOpen)
   tooltipAttached()
-})
-
-watch(isOpened, (val) => {
-  document.body.style.paddingLeft =
-    val && props.isPaddingLeft ? props.menuOpenedPaddingLeftBody : props.menuClosedPaddingLeftBody
 })
 
 const tooltipAttached = () => {
@@ -198,7 +188,7 @@ const tooltipAttached = () => {
 
     target.addEventListener('mouseenter', () => {
       const targetPosition = target.getBoundingClientRect()
-      if (isOpened.value) return
+      if (theme.sidebarOpen) return
       tooltip.style.top = `${targetPosition.top + window.scrollY}px`
       tooltip.style.left = `${targetPosition.left + targetPosition.width + 20}px`
       tooltip.classList.add('active')
@@ -212,14 +202,14 @@ const tooltipAttached = () => {
 </script>
 
 <template>
-  <div class="sidebar" :class="isOpened ? 'open' : ''" :style="cssVars">
+  <div class="sidebar" :class="theme.sidebarOpen ? 'open' : ''" :style="cssVars">
     <div class="logo-details" style="margin: 6px 14px 0 14px">
       <img v-if="menuLogo" :src="menuLogo" alt="menu-logo" class="menu-logo icon" />
       <i v-else class="bx icon" :class="menuIcon" />
       <div class="logo_name">{{ menuTitle }}</div>
       <i
         class="bx"
-        :class="isOpened ? 'bx-menu-alt-right' : 'bx-menu'"
+        :class="theme.sidebarOpen ? 'bx-menu-alt-right' : 'bx-menu'"
         id="btn"
         @click="toggleMenu"
       />

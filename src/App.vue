@@ -2,9 +2,12 @@
 import SideBar from './components/SideBar.vue'
 import { RouterView, useRoute } from 'vue-router'
 import { ref, provide, onMounted } from 'vue'
+import { themeStore } from './stores/themeStore'
 
 const route = useRoute()
 const darkMode = ref(false)
+
+const theme = themeStore()
 
 // Provide darkMode globally for all components
 provide('darkMode', darkMode)
@@ -35,6 +38,8 @@ onMounted(() => {
     <SideBar v-if="route.name !== 'login'" @search-input-emit="search" :is-used-vue-router="true" />
 
     <!-- Render the current route's component -->
-    <RouterView />
+    <RouterView
+      :class="route.name === 'login' ? 'ml-0' : theme.sidebarOpen ? 'ml-[250px]' : 'ml-[78px]'"
+    />
   </div>
 </template>
