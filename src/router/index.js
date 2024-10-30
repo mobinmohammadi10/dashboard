@@ -6,6 +6,7 @@ import FaqView from '@/views/FaqView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import AdminCalendarView from '@/views/AdminCalendarView.vue'
+import SignUpPage from '@/views/SignUpPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +45,11 @@ const router = createRouter({
       path: '/admincalendar',
       name: 'adminCalendar',
       component: AdminCalendarView
+    },
+    {
+      path: '/signup',
+      name: 'signup',
+      component: SignUpPage
     }
   ]
 })

@@ -1,25 +1,25 @@
 <template>
-  <div class="px-20 pl-20 py-10 container mx-auto p-4'">
+  <div class="container px-20 pl-20 py-10 mx-auto max-w-5xl'">
     <!-- Title -->
-    <h1 class="text-2xl font-bold text-center mb-4">Enter your suggestions and limitations for your shifts</h1>
+    <h1 class="text-2xl font-bold text-center mb-4 text-gray-800 dark:text-gray-100">Enter your suggestions and limitations for your shifts</h1>
 
     <!-- Calendar Header -->
     <div class="flex justify-between items-center mb-4">
       <button @click="prevMonth" class="p-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
         &lt;
       </button>
-      <div class="text-xl font-bold">
+      <div class="text-xl font-bold text-gray-800 dark:text-gray-100">
         {{ months[month] }} {{ year }}
       </div>
       <button @click="nextMonth" class="p-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
-        &gt;
+      &gt;
       </button>
     </div>
 
     <!-- Calendar Grid -->
     <div class="grid grid-cols-7 gap-4">
       <!-- Days of the Week -->
-      <div v-for="(day, index) in daysOfWeek" :key="index" class="text-center font-semibold">
+      <div v-for="(day, index) in daysOfWeek" :key="index" class="text-center font-semibold text-gray-600 dark:text-gray-400">
         {{ day }}
       </div>
 
@@ -30,10 +30,10 @@
       <div
         v-for="date in daysInMonth"
         :key="date"
-        class="p-4 border rounded-lg flex flex-col items-center justify-between dark:bg-gray-800"
+        class="p-4 border rounded-lg flex flex-col items-center justify-between bg-white dark:bg-gray-800"
         :class="[isToday(date) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-700']"
       >
-        <div class="text-lg font-bold">{{ date }}</div>
+        <div class="text-lg font-bold text-gray-800 dark:text-gray-200">{{ date }}</div>
 
         <!-- Suggestion and Limitation Buttons -->
         <div class="flex mt-2 space-x-2">
@@ -69,7 +69,8 @@
     <!-- Save Button and Selection Info -->
     <div class="mt-4 flex justify-between items-center">
       <div class="text-red-500" v-if="selectedCount >= maxSelection">You have reached the limit of {{ maxSelection }} selections!</div>
-      <div>Selected: {{ selectedCount }}/{{ maxSelection }}</div>
+      <div class="text-gray-800 dark:text-gray-100">
+        Selected: {{ selectedCount }}/{{ maxSelection }}</div>
       <button 
         @click="saveSelections"
         class="p-3 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
