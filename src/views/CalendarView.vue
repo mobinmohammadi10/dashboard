@@ -1,5 +1,5 @@
 <template>
-  <div :class="['px-20 pl-20 py-10', darkModeClass + ' container mx-auto p-4']">
+  <div class="px-20 pl-20 py-10 container mx-auto p-4'">
     <!-- Title -->
     <h1 class="text-2xl font-bold text-center mb-4">Enter your suggestions and limitations for your shifts</h1>
 
