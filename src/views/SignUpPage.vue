@@ -30,6 +30,20 @@
                       >{{ label }}</label
                     >
                   </div>
+
+                  <div class="relative mt-4">
+                    <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Role</label>
+                    <select
+                      v-model="form.role"
+                      name="role"
+                      required
+                      class="h-10 w-full border-b-2 border-gray-300 dark:border-gray-600 bg-transparent text-gray-900 dark:text-gray-100 focus:outline-none"
+                    >
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+
                   <p v-if="passwordMismatch" class="text-sm text-red-500">Passwords do not match.</p>
                   <button
                     type="submit"
@@ -67,7 +81,8 @@
     lastName: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'user'  // Default role selection
   })
   const signupMessage = ref('')
   

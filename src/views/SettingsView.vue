@@ -84,12 +84,8 @@
       Save Password
     </button>
 
-    <!-- Log Out Section -->
+    <!-- Log Out button -->
     <h2 class="text-2xl font-semibold mb-6">Log Out</h2>
-    <div class="mb-6">
-      <label for="logout-password" class="block text-sm font-medium mb-2">Enter Password to Log Out</label>
-      <input id="logout-password" type="password" v-model="logoutPassword" class="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
-    </div>
     <button @click="logOut" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition">
       Log Out
     </button>
@@ -97,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, inject, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 
 const user = ref({
   firstName: '',
@@ -116,7 +112,6 @@ const notifications = ref(false);
 const currentPassword = ref('');
 const newPassword = ref('');
 const confirmPassword = ref('');
-const logoutPassword = ref('');
 
 // Function to handle file changes (upload)
 const onFileChange = (event) => {
@@ -174,18 +169,12 @@ const toggleNotifications = () => {
 
 const changePassword = () => {
   if (newPassword.value !== confirmPassword.value) {
-    alert('Passwords do not match.');
-  } else {
-    
+    alert('Passwords do not match.');    
   }
 };
 
 const logOut = () => {
-  if (logoutPassword.value === '') {
-    alert('Please enter your password to log out.');
-  } else {
-
-  }
+  alert('You have been logged out.');
 };
 
 // On component mount, set the font size from localStorage
