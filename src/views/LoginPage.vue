@@ -14,7 +14,9 @@
           </div>
           <div class="divide-y divide-gray-200 dark:divide-gray-700">
             <form @submit.prevent="login">
-              <div class="py-8 text-base leading-6 space-y-4 text-gray-700 dark:text-gray-300 sm:text-lg sm:leading-7">
+              <div
+                class="py-8 text-base leading-6 space-y-4 text-gray-700 dark:text-gray-300 sm:text-lg sm:leading-7"
+              >
                 <div class="relative">
                   <input
                     autocomplete="off"
@@ -58,7 +60,7 @@
                 to="signup"
                 class="bg-blue-500 text-white px-6 py-3 rounded-full hover:bg-blue-600 transition duration-300"
               >
-                Sign Up 
+                Sign Up
               </router-link>
             </div>
           </div>
@@ -71,8 +73,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
+const auth = useAuthStore()
 
 const username = ref('')
 const password = ref('')
@@ -90,24 +95,28 @@ onMounted(() => {
 const login = async () => {
   const usernameValue = username.value
   const passwordValue = password.value
+
   try {
-    const res = await fetch('http://localhost:3000/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ username: usernameValue, password: passwordValue })
+    const res = await axios.post('http://localhost:3000/login', {
+      username: usernameValue,
+      password: passwordValue
     })
-    const data = await res.json()
-    if (res.ok) {
+
+    // Handle successful response
+    if (res.status === 200) {
       console.log('User logged in successfully')
-      localStorage.setItem('token', data.token)
+      auth.setJwtToken(res.data.token)
       router.push('/')
-    } else {
-      loginMessage.value = data.message
     }
   } catch (error) {
-    console.error('Error logging in:', error)
+    // Handle errors and unsuccessful login attempt
+    if (error.response) {
+      // Server responded with a status other than 200
+      loginMessage.value = error.response.data.message
+    } else {
+      // Other errors (e.g., network errors)
+      console.error('Error logging in:', error.message)
+    }
   }
 }
 </script>
