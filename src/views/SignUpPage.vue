@@ -17,7 +17,7 @@
                 <div class="py-8 text-base leading-6 space-y-4 text-gray-700 dark:text-gray-300 sm:text-lg sm:leading-7">
                   <div v-for="(label, key) in fields" :key="key" class="relative">
                     <input
-                      :type="key.includes('password') ? 'password' : 'text'"
+                      :type="key === 'password' || key === 'confirmPassword' ? 'password' : 'text'"
                       v-model="form[key]"
                       :name="key"
                       :placeholder="label"

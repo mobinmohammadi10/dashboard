@@ -1,5 +1,5 @@
 <template>
-  <div class="faq-page container mx-auto px-4 py-8 bg-white dark:bg-gray-800 transition-all duration-300">
+  <div class="faq-page container mx-auto px-10 pl-20 py-10 bg-white dark:bg-gray-800 transition-all duration-300">
     <h1 class="text-4xl font-bold text-center text-gray-800 dark:text-white mb-10">Frequently Asked Questions</h1>
     
     <div class="faq-section space-y-8">
