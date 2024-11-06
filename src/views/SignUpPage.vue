@@ -70,63 +70,63 @@
     </div>
   </template>
   
-  <script setup>
-  import { ref, computed, onMounted } from 'vue'
-  import { useRouter } from 'vue-router'
-  
-  const router = useRouter()
-  
-  const form = ref({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: 'user'  // Default role selection
-  })
-  const signupMessage = ref('')
-  
-  const fields = {
-    firstName: 'First Name',
-    lastName: 'Last Name',
-    email: 'Email',
-    password: 'Password',
-    confirmPassword: 'Confirm Password'
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+
+const router = useRouter()
+
+const form = ref({
+  username: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  role: 'user'  // Default role selection
+})
+const signupMessage = ref('')
+
+const fields = {
+  username: 'User Name',
+  email: 'Email',
+  password: 'Password',
+  confirmPassword: 'Confirm Password'
+}
+
+const passwordMismatch = computed(() => form.value.password !== form.value.confirmPassword)
+
+const handleSignup = async () => {
+  if (passwordMismatch.value) {
+    signupMessage.value = 'Passwords do not match.'
+    return
   }
+  try {
+    const res = await axios.post('http://localhost:3000/register', {
+      username: form.value.username,
+      password: form.value.password,
+      role: form.value.role.toUpperCase(),
+      email: form.value.email
+    })
   
-  const passwordMismatch = computed(() => form.value.password !== form.value.confirmPassword)
-  
-  const handleSignup = async () => {
-    if (passwordMismatch.value) {
-      signupMessage.value = 'Passwords do not match.'
-      return
+    if (res.status === 200) {
+      console.log('User signed up successfully')
+      router.push('/login')
     }
-    try {
-      const res = await fetch('http://localhost:3000/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(form.value)
-      })
-      const data = await res.json()
-      if (res.ok) {
-        console.log('User signed up successfully')
-        router.push('/login')
-      } else {
-        signupMessage.value = data.message
-      }
-    } catch (error) {
-      console.error('Error signing up:', error)
+  } catch (error) {
+    if (error.response) {
+      signupMessage.value = error.response.data.message
+    } else {
+      console.error('Error signing up:', error.message)
     }
   }
-  
+}
+
   // Enable dark mode if the setting is on
-  onMounted(() => {
-    const darkModeEnabled = localStorage.getItem('darkMode') === 'True'
-    if (darkModeEnabled) {
-      document.documentElement.classList.add('dark')
-    }
-  })
-  </script>
+onMounted(() => {
+  const darkModeEnabled = localStorage.getItem('darkMode') === 'True'
+  if (darkModeEnabled) {
+    document.documentElement.classList.add('dark')
+  }
+})
+</script>
   
