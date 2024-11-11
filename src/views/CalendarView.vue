@@ -84,6 +84,7 @@
 
 <script setup>
 import { ref, computed, inject, onMounted } from 'vue';
+import axios from 'axios';
 
 const darkMode = inject('darkMode');
 const isDarkMode = darkMode || ref(false);
@@ -161,18 +162,49 @@ const setOption = (date, option) => {
   }
 };
 
-// Save selections to localStorage only on button click
-const saveSelections = () => {
-  const key = `${year.value}-${month.value + 1}`; // Key based on year and month
-  localStorage.setItem(key, JSON.stringify(Array.from(currentSelections.value.entries())));
-  alert('Selections saved successfully!');
+
+const saveSelections = async () => {
+  const suggestions = [];
+  const limitations = [];
+
+  currentSelections.value.forEach((type, date) => {
+    if (type === 'suggestion') {
+      suggestions.push(date);
+    } else if (type === 'limitation') {
+      limitations.push(date);
+    }
+  });
+  try {
+    const userId = 9;
+    if (suggestions.length) {
+      await axios.post(`http://localhost:3000/shift/suggestions/${userId}`, { dates : suggestions});
+    }
+    if (limitations.length) {
+      await axios.post(`http://localhost:3000/shift/limitations/${userId}`, { dates : limitations})
+    }
+    alert("Selections saved successfully!");
+  } catch (error) {
+    console.error("Error saving selections:", error);
+  }
 };
 
-// Load selections from localStorage when the component is mounted or when switching months
-const loadSelections = () => {
-  const key = `${year.value}-${month.value + 1}`; // Key based on year and month
-  const selections = localStorage.getItem(key);
-  currentSelections.value = selections ? new Map(JSON.parse(selections)) : new Map();
+
+const loadSelections = async () => {
+  try {
+    const userId = 9;
+
+    const suggestionsResponse= await axios.get(`http://localhost:3000/shift/suggestions/${userId}`);
+    const suggestions = suggestionsResponse.data || [];
+    const limitationsResponse= await axios.get(`http://localhost:3000/shift/limitations/${userId}`);
+    const limitations = limitationsResponse.data || [];
+
+    currentSelections.value= new Map([
+      ...suggestions.map(date => [date, 'suggestion']),
+      ...limitations.map(date => [date, 'limitation']),
+    ]);
+  } catch (error) {
+    console.error("Error loading selections:", error);
+  }
 };
 
 // Computed properties to track selected options
