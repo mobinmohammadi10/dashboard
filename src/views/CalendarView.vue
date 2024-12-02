@@ -97,6 +97,9 @@ const currentSelections = ref(new Map()); // Store temporary selections for the 
 // Max number of days a user can select per month (suggestions + limitations)
 const maxSelection = 20;
 
+const errorMessage = ref('');
+const successMessage = ref('');
+
 const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const months = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -167,43 +170,34 @@ const saveSelections = async () => {
   const suggestions = [];
   const limitations = [];
 
-  currentSelections.value.forEach((type, date) => {
-    if (type === 'suggestion') {
-      suggestions.push(date);
-    } else if (type === 'limitation') {
-      limitations.push(date);
-    }
+  currentSelections.value.forEach((value, date) => {
+    if (value === 'suggestion') suggestions.push(date)
+    if (value === 'limitation') limitations.push(date)
   });
+
   try {
-    const userId = 9;
-    if (suggestions.length) {
-      await axios.post(`http://localhost:3000/shift/suggestions/${userId}`, { dates : suggestions});
-    }
-    if (limitations.length) {
-      await axios.post(`http://localhost:3000/shift/limitations/${userId}`, { dates : limitations})
-    }
-    alert("Selections saved successfully!");
+    await axios.post(`http://localhost:3000/shift/assign/suggestion`, { dates: suggestions });
+    await axios.post(`http://localhost:3000/shift/assign/limitation`, { dates: limitations });
+    successMessage.value = 'Selections saved successfully!';
   } catch (error) {
-    console.error("Error saving selections:", error);
+    console.error("Error saving selections:", error.message);
+    errorMessage.value = 'Failed to save selections.';
   }
 };
 
 
+// Load selections from localStorage when the component is mounted or when switching months
 const loadSelections = async () => {
   try {
-    const userId = 9;
-
-    const suggestionsResponse= await axios.get(`http://localhost:3000/shift/suggestions/${userId}`);
-    const suggestions = suggestionsResponse.data || [];
-    const limitationsResponse= await axios.get(`http://localhost:3000/shift/limitations/${userId}`);
-    const limitations = limitationsResponse.data || [];
-
-    currentSelections.value= new Map([
-      ...suggestions.map(date => [date, 'suggestion']),
-      ...limitations.map(date => [date, 'limitation']),
-    ]);
+    const suggestionResponse = await axios.get(`http://localhost:3000/shift/suggestions/${month.value + 1}`);     
+    const limitationResponse = await axios.get(`http://localhost:3000/shift/limitations/${month.value + 1}`);
+    
+    currentSelections.value.clear();
+    (suggestionResponse.data || []).forEach((date) => currentSelections.value.set(date, 'suggestion'))
+    (limitationResponse.data || []).forEach((date) => currentSelections.value.set(date, 'limitation'))
   } catch (error) {
-    console.error("Error loading selections:", error);
+    console.error("Error loading selections:", error.message);
+    errorMessage.value = 'Failed to load selections.';
   }
 };
 
