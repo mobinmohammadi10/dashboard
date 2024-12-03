@@ -254,7 +254,11 @@ const changePassword = async () => {
 };
 
 const logOut = () => {
-  alert('You have been logged out.');
+  const confirmLogout = confirm('Are you sure you want to log out?');
+  if (confirmLogout) {
+    alert('You have been logged out.');
+    window.location.href= '/login';
+  }
 };
 
 // On component mount, set the font size from localStorage
