@@ -84,16 +84,43 @@
       Save Password
     </button>
 
-    <!-- Log Out button -->
-    <h2 class="text-2xl font-semibold mb-6">Log Out</h2>
-    <button @click="logOut" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition">
-      Log Out
-    </button>
+    <!-- Log Out Section -->
+    <div class="mt-12">
+      <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+        Log Out
+      </h2>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
+        Safely log out of your account. Your data will remain intact for future use.
+      </p>
+      <button 
+        @click="logOut" 
+        class="px-6 py-2 text-sm font-medium text-white bg-gray-600 rounded-full shadow-md hover:bg-gray-700 focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-800 transition-transform transform hover:scale-105">
+        Log Out
+      </button>
+    </div>
+
+
+    <!-- Delete Account Section -->
+    <div class="mt-12">
+      <h2 class="text-xl font-bold text-red-600 dark:text-red-400 mb-4">
+        Delete Account
+      </h2>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
+        <strong>Warning:</strong> Deleting your account is permanent and cannot be undone.
+      </p>
+      <button 
+        @click="confirmDeleteAccount" 
+        class="px-6 py-2 text-sm font-medium text-white bg-red-600 rounded-full shadow-md hover:bg-red-700 focus:ring-2 focus:ring-red-300 dark:focus:ring-red-800 transition-transform transform hover:scale-105">
+        Delete Account
+      </button>
+    </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import axios from 'axios';
 
 const user = ref({
   firstName: '',
@@ -112,6 +139,34 @@ const notifications = ref(false);
 const currentPassword = ref('');
 const newPassword = ref('');
 const confirmPassword = ref('');
+const username = computed(() => `${user.value.firstName} ${user.value.lastName}`);
+
+// Function to confirm account deletion
+const confirmDeleteAccount = () => {
+  const confirmDelete = confirm('Are you sure you want to delete your account? This action cannot be undone.');
+  if (confirmDelete) {
+    deleteAccount();
+  }
+};
+
+// Function to delete account
+const deleteAccount = async () => {
+  try {
+    const response = await axios.delete('http://localhost:3000/register', {
+      data: { username: username.value } // Sending username in request body
+    });
+
+    if (response.status === 200) {
+      alert('Your account has been successfully deleted.');
+      logOut();
+    } else {
+      alert('Failed to delete your account. Please try again.');
+    }
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    alert('An error occurred while deleting your account.');
+  }
+};
 
 // Function to handle file changes (upload)
 const onFileChange = (event) => {
@@ -167,9 +222,34 @@ const toggleNotifications = () => {
   notifications.value = !notifications.value;
 };
 
-const changePassword = () => {
+const changePassword = async () => {
   if (newPassword.value !== confirmPassword.value) {
-    alert('Passwords do not match.');    
+    alert('Passwords do not match.');
+    return;    
+  }
+
+  if (!currentPassword.value || !newPassword.value) {
+    alert('Please fill in all password fields.');
+    return;
+  }
+
+  try {
+    const response = await axios.put('http://localhost:3000/register', {
+      username: username.value,
+      newPassword: newPassword.value 
+    });
+
+    if (response.status === 200) {
+      alert ('Password changed successfully!');
+      currentPassword.value = '';
+      newPassword.value = '';
+      confirmPassword.value = '';
+    } else {
+      alert ('Failed to change password. Please try again.');
+    }
+  } catch (error) {
+    console.error('Error changing password:', error);
+    alert('An error occurred while changing the password.');
   }
 };
 
