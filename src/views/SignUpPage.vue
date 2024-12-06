@@ -121,7 +121,7 @@ try {
 
   if (res.status === 200) {
     console.log('User signed up successfully')
-    router.push('/login')
+    router.push('/')
   }
 } catch (error) {
   if (error.response) {

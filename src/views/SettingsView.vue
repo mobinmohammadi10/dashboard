@@ -122,6 +122,9 @@
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
+const token = localStorage.getItem('jwtToken'); // Retrieve the JWT
+
+
 const user = ref({
   firstName: '',
   lastName: '',
@@ -152,8 +155,11 @@ const confirmDeleteAccount = () => {
 // Function to delete account
 const deleteAccount = async () => {
   try {
+    const token = localStorage.getItem('jwtToken');
     const response = await axios.delete('http://localhost:3000/register', {
-      data: { username: username.value } // Sending username in request body
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
 
     if (response.status === 200) {
@@ -234,9 +240,14 @@ const changePassword = async () => {
   }
 
   try {
+    const token = localStorage.getItem('jwtToken');
     const response = await axios.put('http://localhost:3000/register', {
-      username: username.value,
+      currentPassword: currentPassword.value,
       newPassword: newPassword.value 
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
 
     if (response.status === 200) {
@@ -261,14 +272,39 @@ const logOut = () => {
   }
 };
 
+const fetchUserData= async() => {
+  try {
+    const token = localStorage.getItem('jwtToken');
+    const response = await axios.get('http://localhost:3000/protected', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    
+    if (response.status === 200) {
+      const userData = response.data;
+      user.value.firstName = userData.firstName;
+      user.value.lastName = userData.lastName;
+      user.value.email = userData.email;
+    } else {
+      alert('Failed to fetch user data.');
+    }
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    alert('An error occurred while fetching user data.');
+  }
+};
+
 // On component mount, set the font size from localStorage
 //onMounted(() => {
   //document.documentElement.style.fontSize = fontSize.value + 'px';
 //});
 onMounted(() => {
+  document.documentElement.style.fontSize = `${fontSize.value}px`;
   if (darkMode.value) {
     document.documentElement.classList.add('dark');
   }
+  fetchUserData();
 });
 
 </script>
