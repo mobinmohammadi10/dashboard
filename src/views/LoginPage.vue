@@ -108,7 +108,7 @@ const login = async () => {
     // Handle successful response
     if (res.status === 200) {
       console.log('User logged in successfully')
-      auth.setJwtToken(res.data.token)
+      auth.setJwtToken(res.data.token, res.data.userId, res.data.email)
       router.push('/')
     }
   } catch (error) {

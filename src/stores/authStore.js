@@ -5,12 +5,16 @@ export const useAuthStore = defineStore('auth', {
     _isLoggedIn: false,
     _isAdmin: false,
     _jwtToken: undefined,
-    _sessionExpiryTime: null
+    _sessionExpiryTime: null,
+    _userId: undefined,
+    _email: undefined
   }),
   getters: {
     isLoggedIn: (state) => state._isLoggedIn,
     isAdmin: (state) => state._isAdmin,
     jwtToken: (state) => state._jwtToken,
+    userId: (state) => state._userId,
+    email: (state) => state._email,
     isSessionExpired: (state) => {
       if (!state._sessionExpiryTime) return true
       return new Date() > new Date(state._sessionExpiryTime)
@@ -29,9 +33,11 @@ export const useAuthStore = defineStore('auth', {
       this._jwtToken = undefined
       this._sessionExpiryTime = null
     },
-    setJwtToken(token) {
+    setJwtToken(token, userId, email) {
       this._jwtToken = token
       this._isLoggedIn = true
+      this._userId = userId
+      this._email = email
       const expirationTime = new Date().getTime() + 60 * 60 * 1000
       this._sessionExpiryTime = new Date(expirationTime).toISOString()
     }
