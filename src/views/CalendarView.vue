@@ -45,7 +45,7 @@
               isSuggestion(date) ? 'bg-green-600 text-white' : 'bg-green-200 dark:bg-green-700 dark:text-black'
             ]"
             title="Suggestion"
-            :disabled="selectedCount >= maxSelection && !isSuggestion(date) && !isLimitation(date)"
+            :disabled="selectedCount >= maxSelection && !isSuggestion(date) && !isLimitation(date) || locked"
           >
             S
           </button>
@@ -58,7 +58,7 @@
               isLimitation(date) ? 'bg-red-600 text-white' : 'bg-red-200 dark:bg-red-700 dark:text-black'
             ]"
             title="Limitation"
-            :disabled="selectedCount >= maxSelection && !isSuggestion(date) && !isLimitation(date)"
+            :disabled="selectedCount >= maxSelection && !isSuggestion(date) && !isLimitation(date) || locked"
           >
             L
           </button>
@@ -74,7 +74,7 @@
       <button 
         @click="saveSelections"
         class="p-3 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
-        :disabled="selectedCount === 0"
+        :disabled="selectedCount === 0 || locked"
       >
         Save Selections
       </button>
@@ -141,8 +141,12 @@ const nextMonth = () => {
   loadSelections(); // Load saved selections for the current month
 };
 
+const locked = ref(false);
+
 // Set the selected option (suggestion or limitation) for a given date
 const setOption = (date, option) => {
+  if (locked.value) return;
+
   const dateStr = `${year.value}-${month.value + 1}-${date}`; // Adjust the month number to be 1-based
   console.log(`Clicked on: ${dateStr} | Option: ${option}`);
 
@@ -168,6 +172,14 @@ const setOption = (date, option) => {
 
 
 const saveSelections = async () => {
+  const confirmSave = confirm(
+    "Are you sure you want to save your selections? You will not be able to change them afterward."
+  );
+
+  if (!confirmSave) {
+    return; // Exit if the user cancels the action
+  }
+  
   const suggestions = [];
   const limitations = [];
 
@@ -195,6 +207,7 @@ const saveSelections = async () => {
     }
     
     successMessage.value = "Selections saved successfully!";
+    locked.value = true;
   } catch( error) {
     console.error("Error saving selections:", error.message);
     errorMessage.value = "Failed to save selections.";
