@@ -85,6 +85,7 @@
 <script setup>
 import { ref, computed, inject, onMounted } from 'vue';
 import axios from 'axios';
+import { useAuthStore } from '@/stores/authStore';
 
 const darkMode = inject('darkMode');
 const isDarkMode = darkMode || ref(false);
@@ -171,20 +172,34 @@ const saveSelections = async () => {
   const limitations = [];
 
   currentSelections.value.forEach((value, date) => {
-    if (value === 'suggestion') suggestions.push(date)
-    if (value === 'limitation') limitations.push(date)
+    if (value === 'suggestion') suggestions.push(date);
+    if (value === 'limitation') limitations.push(date);
   });
 
+  const authStore = useAuthStore();
+  const userId = authStore.userId;
+
   try {
-    await axios.post(`http://localhost:3000/shift/assign/suggestion`, { dates: suggestions });
-    await axios.post(`http://localhost:3000/shift/assign/limitation`, { dates: limitations });
-    successMessage.value = 'Selections saved successfully!';
-  } catch (error) {
+    if (suggestions.length > 0) {
+      await axios.put('http://localhost:3000/shift/assign/suggestion', {
+        userId: userId,
+        suggestionDates: suggestions
+      });
+    }
+
+    if (limitations.length > 0) {
+      await axios.put('http://127.0.0.1:3000/shift/assign/limitation', {
+        userId: userId,
+        limitationDates: limitations
+      });
+    }
+    
+    successMessage.value = "Selections saved successfully!";
+  } catch( error) {
     console.error("Error saving selections:", error.message);
-    errorMessage.value = 'Failed to save selections.';
+    errorMessage.value = "Failed to save selections.";
   }
 };
-
 
 // Load selections from localStorage when the component is mounted or when switching months
 const loadSelections = async () => {
