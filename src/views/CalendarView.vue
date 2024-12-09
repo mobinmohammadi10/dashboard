@@ -214,15 +214,24 @@ const saveSelections = async () => {
   }
 };
 
-// Load selections from localStorage when the component is mounted or when switching months
 const loadSelections = async () => {
+  const authStore = useAuthStore();
+  const userId = authStore.userId;
+
   try {
-    const suggestionResponse = await axios.get(`http://localhost:3000/shift/suggestions/${month.value + 1}`);     
-    const limitationResponse = await axios.get(`http://localhost:3000/shift/limitations/${month.value + 1}`);
+    const suggestionResponse = await axios.get(`http://localhost:3000/shift/suggestions/${userId}`);     
+    const limitationResponse = await axios.get(`http://localhost:3000/shift/limitations/${userId}`);
     
     currentSelections.value.clear();
-    (suggestionResponse.data || []).forEach((date) => currentSelections.value.set(date, 'suggestion'))
-    (limitationResponse.data || []).forEach((date) => currentSelections.value.set(date, 'limitation'))
+    (suggestionResponse.data || []).forEach((date) => {
+      currentSelections.value.set(date, 'suggestion');
+    });
+
+    (limitationResponse.data || []).forEach((date) => {
+      currentSelections.value.set(date, 'limitation');
+    });
+
+    console.log("Loaded selections:", currentSelections.value);
   } catch (error) {
     console.error("Error loading selections:", error.message);
     errorMessage.value = 'Failed to load selections.';
