@@ -28,11 +28,8 @@
         </button>
       </div>
       <div class="flex-1">
-        <label class="block text-sm font-medium mb-1">First Name</label>
-        <input type="text" v-model="user.firstName" class="w-full p-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600">
-
-        <label class="block text-sm font-medium mb-1 mt-4">Last Name</label>
-        <input type="text" v-model="user.lastName" class="w-full p-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+        <label class="block text-sm font-medium mb-1">Username</label>
+        <input type="text" v-model="user.username" class="w-full p-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600">
 
         <label class="block text-sm font-medium mb-1 mt-4">Email Address</label>
         <input type="email" v-model="user.email" class="w-full p-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600">
@@ -122,12 +119,8 @@
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
-const token = localStorage.getItem('jwtToken'); // Retrieve the JWT
-
-
 const user = ref({
-  firstName: '',
-  lastName: '',
+  username: '',
   email: '',
   pictureUrl: localStorage.getItem('userPictureUrl') || 'https://via.placeholder.com/150' // Load from localStorage or use default image
 });
@@ -142,7 +135,6 @@ const notifications = ref(false);
 const currentPassword = ref('');
 const newPassword = ref('');
 const confirmPassword = ref('');
-const username = computed(() => `${user.value.firstName} ${user.value.lastName}`);
 
 // Function to confirm account deletion
 const confirmDeleteAccount = () => {
@@ -283,8 +275,7 @@ const fetchUserData= async() => {
     
     if (response.status === 200) {
       const userData = response.data;
-      user.value.firstName = userData.firstName;
-      user.value.lastName = userData.lastName;
+      user.value.username = userData.username;
       user.value.email = userData.email;
     } else {
       alert('Failed to fetch user data.');
