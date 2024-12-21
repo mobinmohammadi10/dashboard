@@ -1,5 +1,18 @@
 <template>
   <div class="container mx-auto px-10 pl-20 py-10 bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-200 min-h-screen">
+    <!-- Unique ID Generation Section -->
+    <h2 class="text-2xl font-bold mb-4">Admin ID</h2>
+    <button 
+      @click="generateUniqueId" 
+      :disabled="isGenerated"
+      class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Generate Unique ID
+    </button>
+    <p v-if="generatedId" class="text-gray-600 dark:text-gray-300">
+      Admin ID: <strong>{{ generatedId }}</strong>
+    </p>
+
     <!-- Requested Users Table -->
     <h2 class="text-2xl font-bold mb-4">Requested Users</h2>
     <table class="w-full table-auto border-collapse mb-8">
@@ -58,6 +71,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import CalendarView from './CalendarView.vue';
+import { v4 as uuidv4 } from 'uuid';
 
 // Reactive state
 const requestedUsers = ref([]);
@@ -66,6 +80,9 @@ const acceptedUsers = ref([]);
 
 const showCalendarView = ref(false);
 const selectedUser = ref(null);
+
+const generatedId = ref('');
+const isGenerated = ref(false);
 
 // Helper function to save data to localStorage
 function saveToLocalStorage() {
@@ -114,6 +131,11 @@ function editCalendar(user) {
 function closeCalendar() {
   showCalendarView.value = false;
   selectedUser.value = null;
+}
+
+function generateUniqueId() {
+  generatedId.value = uuidv4(); // Generate a unique ID
+  isGenerated.value = true;
 }
 </script>
 

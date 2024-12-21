@@ -14,6 +14,7 @@
     "axios": "^1.7.7",
     "jalaali-js": "^1.2.7",
     "pinia": "^2.2.5",
+    "uuid": "^11.0.3",
     "vue": "^3.4.29",
     "vue-router": "^4.4.5",
     "vue3-persian-datetime-picker": "^1.2.2",

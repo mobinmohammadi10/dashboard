@@ -83,12 +83,10 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore';
 
-const darkMode = inject('darkMode');
-const isDarkMode = darkMode || ref(false);
 
 // Reactive calendar data and methods
 const month = ref(new Date().getMonth());
@@ -264,8 +262,6 @@ const selectedCount = computed(() => {
   return currentSelections.value.size;
 });
 
-// Computed class for handling dark mode
-const darkModeClass = computed(() => (isDarkMode.value ? 'dark' : ''));
 
 // Load selections when the component is mounted
 onMounted(() => {

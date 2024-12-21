@@ -106,9 +106,9 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref } from 'vue'
 
-const darkMode = inject('darkMode')
+
 // Reactive state for managing which question is open
 const openQuestion = ref(null)
 
