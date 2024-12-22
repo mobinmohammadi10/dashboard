@@ -61,36 +61,67 @@
         </tr>
       </tbody>
     </table>
-    <CalendarView v-if="showCalendarView" :user="selectedUser" @close="closeCalendar" />
-    <button v-if="showCalendarView" @click="closeCalendar" class="close-button bg-red-500 text-white px-4 py-2 rounded mt-4">
-      Close
-    </button>
+    <!-- Calendar Modal -->
+    <div v-if="showCalendarView" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+      <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-3/4">
+        <h2 class="text-2xl font-bold mb-4">Edit Calendar for {{ selectedUser.name }}</h2>
+
+        <!-- Suggestions Section -->
+        <h3 class="text-xl font-semibold mb-2">Suggestions</h3>
+        <ul class="mb-6">
+          <li v-for="date in suggestions" :key="date" class="flex items-center justify-between border-b py-2">
+            <span>{{ new Date(date).toLocaleString() }}</span>
+            <div>
+              <!-- Approve and Dismiss Buttons for Suggestions -->
+              <button @click="approveSuggestion(selectedUser.id, adminId, [date])" class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 mr-2">Approve</button>
+              <button @click="dismissSuggestion(selectedUser.id, adminId, [date])" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Dismiss</button>
+            </div>
+          </li>
+        </ul>
+
+        <!-- Limitations Section -->
+        <h3 class="text-xl font-semibold mb-2">Limitations</h3>
+        <ul class="mb-6">
+          <li v-for="date in limitations" :key="date" class="flex items-center justify-between border-b py-2">
+            <span>{{ new Date(date).toLocaleString() }}</span>
+            <div>
+              <!-- Approve and Dismiss Buttons for Limitations -->
+              <button @click="approveLimitation(selectedUser.id, adminId, [date])" class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 mr-2">Approve</button>
+              <button @click="dismissLimitation(selectedUser.id, adminId, [date])" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Dismiss</button>
+            </div>
+          </li>
+        </ul>
+
+    <!-- Close Button -->
+        <button @click="closeCalendar" class="bg-red-500 text-white px-4 py-2 rounded mt-4">Close</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import CalendarView from './CalendarView.vue';
+// import CalendarView from './CalendarView.vue';
+import { useAuthStore } from '@/stores/authStore';
+import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 // Reactive state
 const requestedUsers = ref([]);
-
 const acceptedUsers = ref([]);
-
 const showCalendarView = ref(false);
 const selectedUser = ref(null);
+const suggestions = ref([]);
+const limitations = ref([]);
+const adminId = ref('');
 
 const generatedId = ref('');
 const isGenerated = ref(false);
 
-// Helper function to save data to localStorage
-function saveToLocalStorage() {
-  localStorage.setItem('requestedUsers', JSON.stringify(requestedUsers.value));
-  localStorage.setItem('acceptedUsers', JSON.stringify(acceptedUsers.value));
-}
+const authStore = useAuthStore();
+const userId = authStore.userId;
 
-// Load data from localStorage on component mount
+
 onMounted(() => {
   const storedRequestedUsers = localStorage.getItem('requestedUsers');
   const storedAcceptedUsers = localStorage.getItem('acceptedUsers');
@@ -109,29 +140,68 @@ onMounted(() => {
 });
 
 // Methods
-function acceptUser(user) {
-  acceptedUsers.value.push({
-    ...user,
-    email: `${user.name.toLowerCase()}@example.com`,
-  });
-  requestedUsers.value = requestedUsers.value.filter(u => u.id !== user.id);
-  saveToLocalStorage();
-}
 
-function deleteUser(userId) {
-  requestedUsers.value = requestedUsers.value.filter(user => user.id !== userId);
-  saveToLocalStorage();
-}
-
-function editCalendar(user) {
+const editCalendar = async (user) => {
   selectedUser.value = user;
+  await fetchSuggestionsAndLimitations(user.id);
   showCalendarView.value = true;
 }
 
-function closeCalendar() {
+const fetchSuggestionsAndLimitations = async (userId) => {
+  try {
+    const [suggetionsRes, limitationsRes] = await Promise.all([
+      axios.get(`http://localhost:3000/shift/suggetions/${userId}`),
+      axios.get(`http://localhost:3000/shift/limitations/${userId}`),
+    ]);
+    suggestions.value = suggetionsRes.data;
+    limitations.value = limitationsRes.data;
+  } catch (error) {
+    console.error('Error fetching suggetions/limitations:', error);
+  }
+};
+
+const approveSuggestion = async (userId, adminId, dates) => {
+  try {
+    await axios.post(`http://localhost:3000/shift/approve/suggestions`, { userId, adminId, suggestionDates: dates});
+    suggestions.value = suggestions.value.filter(date => !dates.includes(date));
+  } catch (error) {
+    console.error('Error approving suggetions:', error);
+  }
+};
+
+const dismissSuggestion = async (userId, adminId, dates) => {
+  try {
+    await axios.post(`http://localhost:3000/shift/dismiss/suggestions`, { userId, adminId, suggestionDates: dates});
+    suggestions.value = suggestions.value.filter(date => !dates.includes(date));
+  } catch (error) {
+    console.error('Error dismissing suggetions:', error);
+  }
+};
+
+const approveLimitations = async (userId, adminId, dates) => {
+  try {
+    await axios.post(`http://localhost:3000/shift/approve/limitations`, { userId, adminId, limitationDates: dates});
+    limitations.value = limitations.value.filter(date => !dates.includes(date));
+  } catch (error) {
+    console.error('Error approving limitations:', error);
+  }
+};
+
+const dismissLimitations = async (userId, adminId, dates) => {
+  try {
+    await axios.post(`http://localhost:3000/shift/dismiss/limitations`, { userId, adminId, limitationDates: dates});
+    limitations.value = limitations.value.filter(date => !dates.includes(date));
+  } catch (error) {
+    console.error('Error dismissing limitations:', error);
+  }
+};
+
+const closeCalendar = () => {
   showCalendarView.value = false;
   selectedUser.value = null;
-}
+  suggestions.value = [];
+  limitations.value = [];
+};
 
 function generateUniqueId() {
   generatedId.value = uuidv4(); // Generate a unique ID
