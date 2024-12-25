@@ -101,31 +101,27 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-// import CalendarView from './CalendarView.vue';
 import { useAuthStore } from '@/stores/authStore';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 // Reactive state
+const authStore = useAuthStore();
 const requestedUsers = ref([]);
 const acceptedUsers = ref([]);
 const showCalendarView = ref(false);
 const selectedUser = ref(null);
 const suggestions = ref([]);
 const limitations = ref([]);
-const adminId = ref('');
+
+const userId = ref(authStore.userId); 
+const adminId = ref(authStore.isAdmin ? authStore.userId : null);
 
 const generatedId = ref('');
 const isGenerated = ref(false);
 
-const authStore = useAuthStore();
-const userId = authStore.userId;
-
-
 onMounted(() => {
-  const storedRequestedUsers = localStorage.getItem('requestedUsers');
-  const storedAcceptedUsers = localStorage.getItem('acceptedUsers');
-  
+  const storedRequestedUsers = localStorage.getItem('requestedUsers');  
   // Initialize data from localStorage or default values
   requestedUsers.value = storedRequestedUsers ? JSON.parse(storedRequestedUsers) : [
     { id: 1, name: 'User A' },
@@ -133,10 +129,7 @@ onMounted(() => {
     // ... other
   ];
 
-  acceptedUsers.value = storedAcceptedUsers ? JSON.parse(storedAcceptedUsers) : [
-    { id: 3, name: 'User C', email: 'userc@example.com', profilePhoto: 'https://via.placeholder.com/40' },
-    // ... other
-  ];
+  fetchAcceptedUsers();
 });
 
 // Methods
@@ -146,6 +139,17 @@ const editCalendar = async (user) => {
   await fetchSuggestionsAndLimitations(user.id);
   showCalendarView.value = true;
 }
+
+const fetchAcceptedUsers = async () => {
+  try {
+    const res = await axios.get(`http://localhost:3000/assignment/getAdminUsers`, {
+      data: {adminId: adminId.value}
+    });
+    acceptedUsers.value = res.data.users
+  } catch (error) {
+    console.error('Error fetching accepted users:', error);
+  }
+};
 
 const fetchSuggestionsAndLimitations = async (userId) => {
   try {
