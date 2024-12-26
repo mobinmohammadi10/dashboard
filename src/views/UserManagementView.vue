@@ -44,6 +44,7 @@
           <th class="py-3 px-6 text-left">ID</th>
           <th class="py-3 px-6 text-left">Name</th>
           <th class="py-3 px-6 text-left">Email</th>
+          <th class="py-3 px-6 text-left">Dates</th>
           <th class="py-3 px-6 text-center"></th>
         </tr>
       </thead>
@@ -55,12 +56,16 @@
           <td class="py-3 px-6 text-left">{{ user.id }}</td>
           <td class="py-3 px-6 text-left">{{ user.name }}</td>
           <td class="py-3 px-6 text-left">{{ user.email }}</td>
+          <td class="py-3 px-6 text-left">
+            <span v-for="date in user.dates" :key="date" class="block">{{ new Date(date).toLocaleDateString() }}</span>
+          </td>
           <td class="py-3 px-6 text-center">
             <button @click="editCalendar(user)" class="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600">Edit Calendar</button>
           </td>
         </tr>
       </tbody>
     </table>
+
     <!-- Calendar Modal -->
     <div v-if="showCalendarView" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
       <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-3/4">
@@ -72,7 +77,6 @@
           <li v-for="date in suggestions" :key="date" class="flex items-center justify-between border-b py-2">
             <span>{{ new Date(date).toLocaleString() }}</span>
             <div>
-              <!-- Approve and Dismiss Buttons for Suggestions -->
               <button @click="approveSuggestion(selectedUser.id, adminId, [date])" class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 mr-2">Approve</button>
               <button @click="dismissSuggestion(selectedUser.id, adminId, [date])" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Dismiss</button>
             </div>
@@ -85,14 +89,13 @@
           <li v-for="date in limitations" :key="date" class="flex items-center justify-between border-b py-2">
             <span>{{ new Date(date).toLocaleString() }}</span>
             <div>
-              <!-- Approve and Dismiss Buttons for Limitations -->
               <button @click="approveLimitation(selectedUser.id, adminId, [date])" class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 mr-2">Approve</button>
               <button @click="dismissLimitation(selectedUser.id, adminId, [date])" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Dismiss</button>
             </div>
           </li>
         </ul>
 
-    <!-- Close Button -->
+        <!-- Close Button -->
         <button @click="closeCalendar" class="bg-red-500 text-white px-4 py-2 rounded mt-4">Close</button>
       </div>
     </div>
@@ -105,7 +108,6 @@ import { useAuthStore } from '@/stores/authStore';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
-// Reactive state
 const authStore = useAuthStore();
 const requestedUsers = ref([]);
 const acceptedUsers = ref([]);
@@ -121,79 +123,105 @@ const generatedId = ref('');
 const isGenerated = ref(false);
 
 onMounted(() => {
-  const storedRequestedUsers = localStorage.getItem('requestedUsers');  
-  // Initialize data from localStorage or default values
-  requestedUsers.value = storedRequestedUsers ? JSON.parse(storedRequestedUsers) : [
-    { id: 1, name: 'User A' },
-    { id: 2, name: 'User B' },
-    // ... other
-  ];
-
+  fetchRequestedUsers();
   fetchAcceptedUsers();
 });
 
-// Methods
-
-const editCalendar = async (user) => {
-  selectedUser.value = user;
-  await fetchSuggestionsAndLimitations(user.id);
-  showCalendarView.value = true;
-}
+const fetchRequestedUsers = async () => {
+  try {
+    const response = await axios.get(`http://localhost:3000/admin/getAdminProposals`, {
+      params: { adminId: adminId.value },
+    });
+    requestedUsers.value = response.data.proposals || [];
+  } catch (error) {
+    console.error('Error fetching requested users:', error);
+  }
+};
 
 const fetchAcceptedUsers = async () => {
   try {
-    const res = await axios.get(`http://localhost:3000/assignment/getAdminUsers`, {
-      data: {adminId: adminId.value}
+    const response = await axios.get(`http://localhost:3000/assignment/getAdminUsers`, {
+      params: { adminId: adminId.value },
     });
-    acceptedUsers.value = res.data.users
+    acceptedUsers.value = response.data.users || [];
   } catch (error) {
     console.error('Error fetching accepted users:', error);
   }
 };
 
+const acceptUser = async (user) => {
+  try {
+    await axios.post(`http://localhost:3000/admin/proposalAdmin`, {
+      adminId: adminId.value,
+      userId: user.id,
+    });
+    requestedUsers.value = requestedUsers.value.filter((u) => u.id !== user.id);
+    fetchAcceptedUsers();
+  } catch (error) {
+    console.error('Error accepting user:', error);
+  }
+};
+
+const deleteUser = async (userId) => {
+  try {
+    await axios.delete(`http://localhost:3000/admin/removeProposalAdmin`, {
+      data: { adminId: adminId.value, userId },
+    });
+    requestedUsers.value = requestedUsers.value.filter((user) => user.id !== userId);
+  } catch (error) {
+    console.error('Error deleting user:', error);
+  }
+};
+
+const editCalendar = async (user) => {
+  selectedUser.value = user;
+  await fetchSuggestionsAndLimitations(user.id);
+  showCalendarView.value = true;
+};
+
 const fetchSuggestionsAndLimitations = async (userId) => {
   try {
-    const [suggetionsRes, limitationsRes] = await Promise.all([
-      axios.get(`http://localhost:3000/shift/suggetions/${userId}`),
+    const [suggestionsRes, limitationsRes] = await Promise.all([
+      axios.get(`http://localhost:3000/shift/suggestions/${userId}`),
       axios.get(`http://localhost:3000/shift/limitations/${userId}`),
     ]);
-    suggestions.value = suggetionsRes.data;
-    limitations.value = limitationsRes.data;
+    suggestions.value = suggestionsRes.data || [];
+    limitations.value = limitationsRes.data || [];
   } catch (error) {
-    console.error('Error fetching suggetions/limitations:', error);
+    console.error('Error fetching suggestions/limitations:', error);
   }
 };
 
 const approveSuggestion = async (userId, adminId, dates) => {
   try {
-    await axios.post(`http://localhost:3000/shift/approve/suggestions`, { userId, adminId, suggestionDates: dates});
+    await axios.post(`http://localhost:3000/shift/approve/suggestions`, { userId, adminId, suggestionDates: dates });
     suggestions.value = suggestions.value.filter(date => !dates.includes(date));
   } catch (error) {
-    console.error('Error approving suggetions:', error);
+    console.error('Error approving suggestions:', error);
   }
 };
 
 const dismissSuggestion = async (userId, adminId, dates) => {
   try {
-    await axios.post(`http://localhost:3000/shift/dismiss/suggestions`, { userId, adminId, suggestionDates: dates});
+    await axios.post(`http://localhost:3000/shift/dismiss/suggestions`, { userId, adminId, suggestionDates: dates });
     suggestions.value = suggestions.value.filter(date => !dates.includes(date));
   } catch (error) {
-    console.error('Error dismissing suggetions:', error);
+    console.error('Error dismissing suggestions:', error);
   }
 };
 
-const approveLimitations = async (userId, adminId, dates) => {
+const approveLimitation = async (userId, adminId, dates) => {
   try {
-    await axios.post(`http://localhost:3000/shift/approve/limitations`, { userId, adminId, limitationDates: dates});
+    await axios.post(`http://localhost:3000/shift/approve/limitations`, { userId, adminId, limitationDates: dates });
     limitations.value = limitations.value.filter(date => !dates.includes(date));
   } catch (error) {
     console.error('Error approving limitations:', error);
   }
 };
 
-const dismissLimitations = async (userId, adminId, dates) => {
+const dismissLimitation = async (userId, adminId, dates) => {
   try {
-    await axios.post(`http://localhost:3000/shift/dismiss/limitations`, { userId, adminId, limitationDates: dates});
+    await axios.post(`http://localhost:3000/shift/dismiss/limitations`, { userId, adminId, limitationDates: dates });
     limitations.value = limitations.value.filter(date => !dates.includes(date));
   } catch (error) {
     console.error('Error dismissing limitations:', error);
@@ -207,10 +235,10 @@ const closeCalendar = () => {
   limitations.value = [];
 };
 
-function generateUniqueId() {
-  generatedId.value = uuidv4(); // Generate a unique ID
+const generateUniqueId = () => {
+  generatedId.value = uuidv4();
   isGenerated.value = true;
-}
+};
 </script>
 
 <style scoped>
