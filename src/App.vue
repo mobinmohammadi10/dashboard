@@ -1,13 +1,16 @@
 <script setup>
 import SideBar from './components/SideBar.vue'
-import { RouterView, useRoute } from 'vue-router'
+import { RouterView, useRoute, useRouter } from 'vue-router'
 import { ref, provide, onMounted } from 'vue'
 import { themeStore } from './stores/themeStore'
+import { useAuthStore } from './stores/authStore'
 
 const route = useRoute()
+const router = useRouter()
 const darkMode = ref(false)
 
 const theme = themeStore()
+const auth = useAuthStore()
 
 // Provide darkMode globally for all components
 provide('darkMode', darkMode)
@@ -28,6 +31,11 @@ onMounted(() => {
   if (savedDarkMode) {
     darkMode.value = savedDarkMode === 'true'
     document.documentElement.classList.toggle('dark', darkMode.value)
+  }
+
+  const { isLoggedIn, jwtToken, userId, email } = auth
+  if (!isLoggedIn || !jwtToken || !userId || !email || auth.isSessionExpired) {
+    router.push({name: 'login'})
   }
 })
 </script>
