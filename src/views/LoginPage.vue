@@ -109,6 +109,9 @@ const login = async () => {
     if (res.status === 200) {
       console.log('User logged in successfully')
       auth.setJwtToken(res.data.token, res.data.userId, res.data.email)
+      if (res.data.role == 'admin') {
+        auth.setAdmin()
+      }
       router.push('/')
     }
   } catch (error) {
