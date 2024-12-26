@@ -107,6 +107,7 @@ import { ref, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import router from '@/router';
 
 const authStore = useAuthStore();
 const requestedUsers = ref([]);
@@ -123,8 +124,12 @@ const generatedId = ref('');
 const isGenerated = ref(false);
 
 onMounted(() => {
-  fetchRequestedUsers();
-  fetchAcceptedUsers();
+  if (authStore.isAdmin) {
+    fetchAcceptedUsers();
+    fetchRequestedUsers();
+  } else {
+    router.push({name: 'notFound'});
+  }
 });
 
 const fetchRequestedUsers = async () => {
