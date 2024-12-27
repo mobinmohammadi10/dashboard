@@ -117,8 +117,8 @@ const selectedUser = ref(null);
 const suggestions = ref([]);
 const limitations = ref([]);
 
-const userId = ref(authStore.userId); 
-const adminId = ref(authStore.isAdmin ? authStore.userId : null);
+const userId = authStore.userId; 
+const adminId = authStore.isAdmin ? authStore.userId : null;
 
 const generatedId = ref('');
 const isGenerated = ref(false);
@@ -133,10 +133,16 @@ onMounted(() => {
 });
 
 const fetchRequestedUsers = async () => {
+  console.log('ADMIN ID request:', adminId);
   try {
-    const response = await axios.get(`http://localhost:3000/admin/getAdminProposals`, {
-      params: { adminId: adminId.value },
+    const response = await axios.request({
+      method: 'get',
+      url: 'http://localhost:3000/assignment/getAdminProposals',
+      maxBodyLength: Infinity,
+      headers: {},
+      data: { adminId }, 
     });
+    console.log('Requested successfully:', adminId);
     requestedUsers.value = response.data.proposals || [];
   } catch (error) {
     console.error('Error fetching requested users:', error);
@@ -144,10 +150,16 @@ const fetchRequestedUsers = async () => {
 };
 
 const fetchAcceptedUsers = async () => {
+  console.log('ADMIN ID accept:', adminId);
   try {
-    const response = await axios.get(`http://localhost:3000/assignment/getAdminUsers`, {
-      params: { adminId: adminId.value },
+    const response = await axios.request({
+      method: 'get',
+      url: 'http://localhost:3000/assignment/getAdminUsers',
+      maxBodyLength: Infinity,
+      headers: {},
+      data: { adminId }, 
     });
+    console.log('Accepted successfully:', adminId);
     acceptedUsers.value = response.data.users || [];
   } catch (error) {
     console.error('Error fetching accepted users:', error);
@@ -157,7 +169,7 @@ const fetchAcceptedUsers = async () => {
 const acceptUser = async (user) => {
   try {
     await axios.post(`http://localhost:3000/admin/proposalAdmin`, {
-      adminId: adminId.value,
+      adminId,
       userId: user.id,
     });
     requestedUsers.value = requestedUsers.value.filter((u) => u.id !== user.id);
@@ -170,7 +182,7 @@ const acceptUser = async (user) => {
 const deleteUser = async (userId) => {
   try {
     await axios.delete(`http://localhost:3000/admin/removeProposalAdmin`, {
-      data: { adminId: adminId.value, userId },
+      data: { adminId, userId },
     });
     requestedUsers.value = requestedUsers.value.filter((user) => user.id !== userId);
   } catch (error) {
