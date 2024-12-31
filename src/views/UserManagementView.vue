@@ -185,7 +185,6 @@ const selectedUser = ref(null)
 const suggestions = ref([])
 const limitations = ref([])
 
-const userId = authStore.userId
 const adminId = authStore.isAdmin ? authStore.userId : null
 
 const generatedId = ref('')
@@ -224,27 +223,36 @@ const fetchAcceptedUsers = async () => {
 
 const acceptUser = async (user) => {
   try {
-    await axios.post(`http://localhost:3000/admin/proposalAdmin`, {
-      adminId,
+    const response = await axios.put(`http://localhost:3000/assignment`, {
+      adminId: adminId,
       userId: user.id
-    })
+    });
+
+    console.log('User accepted successfully', response.data);
+
     requestedUsers.value = requestedUsers.value.filter((u) => u.id !== user.id)
-    fetchAcceptedUsers()
+    acceptedUsers.value.push(user);
   } catch (error) {
     console.error('Error accepting user:', error)
   }
-}
+};
 
 const deleteUser = async (userId) => {
   try {
-    await axios.delete(`http://localhost:3000/admin/removeProposalAdmin`, {
-      data: { adminId, userId }
-    })
+    const response = await axios.delete(`http://localhost:3000/assignment/removeProposalAdmin`, {
+      data: { 
+        adminId: adminId,
+        userId: userId
+      },
+    });
+
+    console.log('User deleted successfully', response.data);
+
     requestedUsers.value = requestedUsers.value.filter((user) => user.id !== userId)
   } catch (error) {
     console.error('Error deleting user:', error)
   }
-}
+};
 
 const editCalendar = async (user) => {
   selectedUser.value = user
@@ -257,9 +265,13 @@ const fetchSuggestionsAndLimitations = async (userId) => {
     const [suggestionsRes, limitationsRes] = await Promise.all([
       axios.get(`http://localhost:3000/shift/suggestions/${userId}`),
       axios.get(`http://localhost:3000/shift/limitations/${userId}`)
-    ])
+    ]);
     suggestions.value = suggestionsRes.data || []
     limitations.value = limitationsRes.data || []
+
+    console.log('Suggestions:', suggestions.value);
+    console.log('Limitations:', limitations.value);
+
   } catch (error) {
     console.error('Error fetching suggestions/limitations:', error)
   }
@@ -271,25 +283,15 @@ const approveSuggestion = async (userId, adminId, dates) => {
       userId,
       adminId,
       suggestionDates: dates
-    })
+    });
+
+    console.log('Dates approved successfully:', dates);
+
     suggestions.value = suggestions.value.filter((date) => !dates.includes(date))
   } catch (error) {
     console.error('Error approving suggestions:', error)
   }
-}
-
-const dismissSuggestion = async (userId, adminId, dates) => {
-  try {
-    await axios.post(`http://localhost:3000/shift/dismiss/suggestions`, {
-      userId,
-      adminId,
-      suggestionDates: dates
-    })
-    suggestions.value = suggestions.value.filter((date) => !dates.includes(date))
-  } catch (error) {
-    console.error('Error dismissing suggestions:', error)
-  }
-}
+};
 
 const approveLimitation = async (userId, adminId, dates) => {
   try {
@@ -297,25 +299,48 @@ const approveLimitation = async (userId, adminId, dates) => {
       userId,
       adminId,
       limitationDates: dates
-    })
+    });
+
+    console.log('Dates approved successfully:', dates);
+
     limitations.value = limitations.value.filter((date) => !dates.includes(date))
   } catch (error) {
     console.error('Error approving limitations:', error)
   }
-}
+};
+
+const dismissSuggestion = async (userId, adminId, dates) => {
+  try {
+    await axios.post(`http://localhost:3000/shift/dismisse/suggestions`, {
+      userId,
+      adminId,
+      suggestionDates: dates
+    });
+
+    console.log('Dates dismissed successfully:', dates);
+
+    suggestions.value = suggestions.value.filter((date) => !dates.includes(date))
+  } catch (error) {
+    console.error('Error dismissing suggestions:', error)
+  }
+};
+
 
 const dismissLimitation = async (userId, adminId, dates) => {
   try {
-    await axios.post(`http://localhost:3000/shift/dismiss/limitations`, {
+    await axios.post(`http://localhost:3000/shift/dismisse/limitations`, {
       userId,
       adminId,
       limitationDates: dates
-    })
+    });
+
+    console.log('Dates dismissed successfully:', dates);
+
     limitations.value = limitations.value.filter((date) => !dates.includes(date))
   } catch (error) {
     console.error('Error dismissing limitations:', error)
   }
-}
+};
 
 const closeCalendar = () => {
   showCalendarView.value = false
