@@ -3,10 +3,13 @@ import { computed, onMounted } from 'vue'
 import MenuItem from './MenuItem.vue'
 import { useRouter } from 'vue-router'
 import { themeStore } from '@/stores/themeStore'
+import { useAuthStore } from '@/stores/authStore';
+
+// eslint-disable-next-line no-unused-vars
 
 const router = useRouter()
-
 const theme = themeStore()
+const auth = useAuthStore();
 
 const props = defineProps({
   isMenuOpen: {
@@ -35,32 +38,7 @@ const props = defineProps({
   },
   menuItems: {
     type: Array,
-    default: () => [
-      {
-        link: '/',
-        name: 'Dashboard',
-        tooltip: 'Dashboard',
-        icon: 'bx-grid-alt'
-      },
-      {
-        link: '/calendar',
-        name: 'Calendar',
-        tooltip: 'Calendar',
-        icon: 'bx-calendar'
-      },
-      {
-        link: '/settings',
-        name: 'Settings',
-        tooltip: 'Settings',
-        icon: 'bx-cog'
-      },
-      {
-        link: '/faq',
-        name: 'FAQ',
-        tooltip: 'FAQ',
-        icon: 'bx-message-dots'
-      }
-    ]
+    default: () => []
   },
   isSearch: {
     type: Boolean,
@@ -133,12 +111,10 @@ const props = defineProps({
   menuFooterTextColor: {
     type: String,
     default: '#fff'
-  }
+  },
 })
 
 const emit = defineEmits(['search-input-emit', 'menuItemClcked', 'button-exit-clicked'])
-
-// const isOpened = ref(false)
 
 const cssVars = computed(() => ({
   '--bg-color': props.bgColor,
@@ -199,6 +175,58 @@ const tooltipAttached = () => {
     })
   })
 }
+
+const dynamicMenuItems = computed(() => {
+  let baseItems = [
+    {
+      link: '/',
+      name: 'Dashboard',
+      tooltip: 'Dashboard',
+      icon: 'bx-grid-alt'
+    }
+  ]
+
+  if (auth.isAdmin) {
+    baseItems.push(
+      {
+        link: '/admincalendar',
+        name: 'Admin Calendar',
+        tooltip: 'Admin Calendar',
+        icon: 'bx-calendar'
+      },
+      {
+        link: '/usermanagement',
+        name: 'User Management',
+        tooltip: 'User Management',
+        icon: 'bx-group'
+      }
+    )
+  } else {
+    baseItems.push({
+      link: '/calendar',
+      name: 'Calendar',
+      tooltip: 'Calendar',
+      icon: 'bx-calendar'
+    })
+  }
+
+  baseItems.push({
+    link: '/settings',
+    name: 'Settings',
+    tooltip: 'Settings',
+    icon: 'bx-cog'
+  },
+  {
+    link: '/faq',
+    name: 'Faq',
+    tooltip: 'Faq',
+    icon: 'bx-message-dots'
+  }
+)
+
+  return baseItems
+})
+
 </script>
 
 <template>
@@ -232,7 +260,7 @@ const tooltipAttached = () => {
             <span data-target="links_search" class="tooltip">{{ searchTooltip }}</span>
           </li>
           <MenuItem
-            v-for="(menuItem, index) in menuItems"
+            v-for="(menuItem, index) in dynamicMenuItems"
             :key="index"
             :menu-item="menuItem"
             :id="index"
