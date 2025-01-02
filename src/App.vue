@@ -35,7 +35,8 @@ onMounted(() => {
 
   const { isLoggedIn, jwtToken, userId, email } = auth
   if (!isLoggedIn || !jwtToken || !userId || !email || auth.isSessionExpired) {
-    router.push({name: 'login'})
+    router.push({ name: 'login' })
+    auth.$reset()
   }
 })
 </script>

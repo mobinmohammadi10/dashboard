@@ -1,15 +1,15 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUpdated } from 'vue'
 import MenuItem from './MenuItem.vue'
 import { useRouter } from 'vue-router'
 import { themeStore } from '@/stores/themeStore'
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/stores/authStore'
 
 // eslint-disable-next-line no-unused-vars
 
 const router = useRouter()
 const theme = themeStore()
-const auth = useAuthStore();
+const auth = useAuthStore()
 
 const props = defineProps({
   isMenuOpen: {
@@ -111,7 +111,7 @@ const props = defineProps({
   menuFooterTextColor: {
     type: String,
     default: '#fff'
-  },
+  }
 })
 
 const emit = defineEmits(['search-input-emit', 'menuItemClcked', 'button-exit-clicked'])
@@ -151,9 +151,11 @@ const exitButtonClicked = () => {
 
 onMounted(() => {
   theme.setSidebarValue(props.isMenuOpen)
-  tooltipAttached()
 })
 
+onUpdated(() => {
+  tooltipAttached()
+})
 const tooltipAttached = () => {
   const tooltips = document.querySelectorAll('.tooltip')
   tooltips.forEach((tooltip) => {
@@ -210,23 +212,23 @@ const dynamicMenuItems = computed(() => {
     })
   }
 
-  baseItems.push({
-    link: '/settings',
-    name: 'Settings',
-    tooltip: 'Settings',
-    icon: 'bx-cog'
-  },
-  {
-    link: '/faq',
-    name: 'Faq',
-    tooltip: 'Faq',
-    icon: 'bx-message-dots'
-  }
-)
+  baseItems.push(
+    {
+      link: '/settings',
+      name: 'Settings',
+      tooltip: 'Settings',
+      icon: 'bx-cog'
+    },
+    {
+      link: '/faq',
+      name: 'Faq',
+      tooltip: 'Faq',
+      icon: 'bx-message-dots'
+    }
+  )
 
   return baseItems
 })
-
 </script>
 
 <template>
