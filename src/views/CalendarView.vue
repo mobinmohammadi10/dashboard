@@ -88,14 +88,11 @@ import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore';
 
 
-// Reactive calendar data and methods
 const month = ref(new Date().getMonth());
 const year = ref(new Date().getFullYear());
-const currentSelections = ref(new Map()); // Store temporary selections for the current month
-
-// Max number of days a user can select per month (suggestions + limitations)
+const currentSelections = ref(new Map());
 const maxSelection = 20;
-
+const locked = ref(false);
 const errorMessage = ref('');
 const successMessage = ref('');
 
@@ -125,7 +122,7 @@ const prevMonth = () => {
   } else {
     month.value--;
   }
-  loadSelections(); // Load saved selections for the current month
+  loadSelections();
 };
 
 // Go to the next month
@@ -136,16 +133,14 @@ const nextMonth = () => {
   } else {
     month.value++;
   }
-  loadSelections(); // Load saved selections for the current month
+  loadSelections();
 };
-
-const locked = ref(false);
 
 // Set the selected option (suggestion or limitation) for a given date
 const setOption = (date, option) => {
   if (locked.value) return;
 
-  const dateStr = `${year.value}-${month.value + 1}-${date}`; // Adjust the month number to be 1-based
+  const dateStr = new Date(year.value, month.value, date).toISOString();
   console.log(`Clicked on: ${dateStr} | Option: ${option}`);
 
   if (currentSelections.value.has(dateStr)) {
@@ -161,9 +156,9 @@ const setOption = (date, option) => {
   } else {
     if (selectedCount.value >= maxSelection) {
       alert(`You can only select up to ${maxSelection} dates this month!`);
-      return; // Prevent selecting more than the max limit
+      return;
     }
-    currentSelections.value.set(dateStr, option); // Select
+    currentSelections.value.set(dateStr, option);
     console.log(`Selected ${option} for ${dateStr}`);
   }
 };
@@ -175,7 +170,7 @@ const saveSelections = async () => {
   );
 
   if (!confirmSave) {
-    return; // Exit if the user cancels the action
+    return;
   }
   
   const suggestions = [];
@@ -198,7 +193,7 @@ const saveSelections = async () => {
     }
 
     if (limitations.length > 0) {
-      await axios.put('http://127.0.0.1:3000/shift/assign/limitation', {
+      await axios.put('http://localhost:3000/shift/assign/limitation', {
         userId: userId,
         limitationDates: limitations
       });
@@ -206,7 +201,7 @@ const saveSelections = async () => {
     
     successMessage.value = "Selections saved successfully!";
     locked.value = true;
-  } catch( error) {
+  } catch (error) {
     console.error("Error saving selections:", error.message);
     errorMessage.value = "Failed to save selections.";
   }
@@ -219,7 +214,7 @@ const loadSelections = async () => {
   try {
     const suggestionResponse = await axios.get(`http://localhost:3000/shift/suggestions/${userId}`);     
     const limitationResponse = await axios.get(`http://localhost:3000/shift/limitations/${userId}`);
-    
+
     currentSelections.value.clear();
     (suggestionResponse.data || []).forEach((date) => {
       currentSelections.value.set(date, 'suggestion');
@@ -238,12 +233,12 @@ const loadSelections = async () => {
 
 // Computed properties to track selected options
 const isSuggestion = (date) => {
-  const dateStr = `${year.value}-${month.value + 1}-${date}`;
+  const dateStr = new Date(year.value, month.value, date).toISOString();
   return currentSelections.value.get(dateStr) === 'suggestion';
 };
 
 const isLimitation = (date) => {
-  const dateStr = `${year.value}-${month.value + 1}-${date}`;
+  const dateStr = new Date(year.value, month.value, date).toISOString();
   return currentSelections.value.get(dateStr) === 'limitation';
 };
 
