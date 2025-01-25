@@ -31,7 +31,7 @@
         v-for="date in daysInMonth"
         :key="date"
         class="p-4 border rounded-lg flex flex-col items-center justify-between bg-white dark:bg-gray-800"
-        :class="[isToday(date) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-700']"
+        :class="[isToday(date) ? 'bg-blue-200 dark:bg-blue-800' : 'bg-white dark:bg-gray-700']"
       >
         <div class="text-lg font-bold text-gray-800 dark:text-gray-200">{{ date }}</div>
 
