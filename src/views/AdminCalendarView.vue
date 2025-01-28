@@ -43,8 +43,8 @@
           <!-- Drag and drop -->
           <div class="flex flex-col px-1 py-1 overflow-auto">
             <draggable
-              v-model="users"
-              item-key="user"
+              v-model="usersForDate[date]"
+              item-key="id"
               group="users"
               :sort="true"
               @start="drag = true"
@@ -55,7 +55,7 @@
                   class="flex items-center flex-shrink-0 h-5 px-1 text-xs hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                 >
                   <span class="flex-shrink-0 w-2 h-2 rounded-full bg-gray-700 dark:bg-gray-300"></span>
-                  <span class="ml-2 font-light leading-none">{{ element.user }}</span>
+                  <span class="ml-2 font-light leading-none">{{ element.id }}</span>
                 </button>
               </template>
             </draggable>
@@ -85,11 +85,9 @@ const months = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-const users = ref([{ user: 'user1' }, { user: 'user2' }])
+const adminUsers = ref([])
 const authStore = useAuthStore()
-const dates = ref([])
 const adminId = authStore.isAdmin ? authStore.userId : null
-const approvedSuggestions = ref([])
 
 const darkModeEnabled= ref(localStorage.getItem('darkMode') === 'True')
 
@@ -107,6 +105,20 @@ const daysInMonth = computed(() => {
 const leadingEmptyDays = computed(() => {
   const firstDayOfMonth = new Date(year.value, month.value, 1).getDay();
   return firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+});
+
+// Compute users for each date dynamically
+const usersForDate = computed(() => {
+  const result = {};
+  daysInMonth.value.forEach((date) => {
+    const currentDate = new Date(year.value, month.value, date).toISOString().split('T')[0];
+    result[date] = adminUsers.value.filter(user =>
+      user.suggestions.some(suggestion =>
+        new Date(suggestion).toISOString().split('T')[0] === currentDate
+      )
+    );
+  });
+  return result;
 });
 
 // Go to the previous month
@@ -139,27 +151,26 @@ const isToday = (date) => {
   );
 };
 
-const fetchApproveSuggestions = async () => {
+const getAdminUsers = async () => {
   try {
-    const response = await axios.post(`http://localhost:3000/shift/approve/suggestions`, {
-      userId:9,
-      adminId,
-      suggestionDates: ["2024-12-01T08:00:00.000Z"]
+    const response = await axios.post(`http://localhost:3000/assignment/getAdminUsers`, {
+      adminId
     });
 
-    approvedSuggestions.value = response.data || []
-    console.log('Dates approved:', dates);
+    if (response.data) {
+      adminUsers.value = response.data.users;
+      console.log('get admin users: ', adminUsers.value);
+    }
   } catch (error) {
-    console.error('Error approving suggestions:', error)
+    console.error('Error getting users data:', error);
   }
 };
 
 onMounted(() => {
   if (authStore.isAdmin) {
-    fetchApproveSuggestions()
+    getAdminUsers()
   } else {
     router.push({ name : 'notFound'})
   }
 })
-
 </script>
