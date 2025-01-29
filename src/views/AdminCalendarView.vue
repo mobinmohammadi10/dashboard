@@ -36,30 +36,30 @@
           v-for="date in daysInMonth"
           :key="date"
           class="p-4 border rounded-lg flex flex-col items-start justify-between bg-white dark:bg-gray-800"
-          :class="[isToday(date) ? 'bg-blue-200 dark:bg-blue-800' : 'bg-white dark:bg-gray-700']"
+          :class="[isToday(date) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-700']"
         >
           <div class="text-lg font-bold text-gray-800 dark:text-gray-200">{{ date }}</div>
           
           <!-- Drag and drop -->
-          <div class="flex flex-col px-1 py-1 overflow-auto">
+
             <draggable
               v-model="usersForDate[date]"
               item-key="id"
               group="users"
+              class="flex flex-col px-1 py-1 overflow-auto w-full"
               :sort="true"
               @start="drag = true"
               @end="drag = false"
             >
               <template #item="{ element }">
-                <button
-                  class="flex items-center flex-shrink-0 h-5 px-1 text-xs hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                <div
+                  class="flex items-center flex-shrink-0 h-6 px-2 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded cursor-pointer"
                 >
                   <span class="flex-shrink-0 w-2 h-2 rounded-full bg-gray-700 dark:bg-gray-300"></span>
-                  <span class="ml-2 font-light leading-none">{{ element.id }}</span>
-                </button>
+                  <span class="ml-2 font-light leading-none">ID {{ element.id }}</span>
+                </div>
               </template>
             </draggable>
-          </div>
         </div>
       </div>
     </div>
@@ -107,19 +107,18 @@ const leadingEmptyDays = computed(() => {
   return firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
 });
 
-// Compute users for each date dynamically
-const usersForDate = computed(() => {
-  const result = {};
-  daysInMonth.value.forEach((date) => {
-    const currentDate = new Date(year.value, month.value, date).toISOString().split('T')[0];
-    result[date] = adminUsers.value.filter(user =>
-      user.suggestions.some(suggestion =>
-        new Date(suggestion).toISOString().split('T')[0] === currentDate
-      )
-    );
+// Users assigned to each date
+const usersForDate = ref({});
+
+// Initialize users for each date
+const initializeUsersForDate = () => {
+  usersForDate.value = {};
+  daysInMonth.value.forEach(date => {
+    if (!usersForDate.value[date]) {
+      usersForDate.value[date] = [];
+    }
   });
-  return result;
-});
+};
 
 // Go to the previous month
 const prevMonth = () => {
@@ -129,6 +128,7 @@ const prevMonth = () => {
   } else {
     month.value--;
   }
+  initializeUsersForDate();
 };
 
 // Go to the next month
@@ -139,6 +139,7 @@ const nextMonth = () => {
   } else {
     month.value++;
   }
+  initializeUsersForDate();
 };
 
 // Check if the given date is today
@@ -151,6 +152,7 @@ const isToday = (date) => {
   );
 };
 
+// Fetch admin users
 const getAdminUsers = async () => {
   try {
     const response = await axios.post(`http://localhost:3000/assignment/getAdminUsers`, {
@@ -159,6 +161,23 @@ const getAdminUsers = async () => {
 
     if (response.data) {
       adminUsers.value = response.data.users;
+
+      initializeUsersForDate();
+
+      // Assign users to their suggested dates
+      adminUsers.value.forEach(user => {
+        user.suggestions.forEach(suggestion => {
+          const date = new Date(suggestion).getDate();
+          if (!usersForDate.value[date]) {
+            usersForDate.value[date] = [];
+          }
+          const alreadyExists = usersForDate.value[date].some(u => u.id === user.id);
+          if (!alreadyExists) {
+            usersForDate.value[date].push(user);
+          }
+        });
+      });
+
       console.log('get admin users: ', adminUsers.value);
     }
   } catch (error) {
@@ -167,6 +186,7 @@ const getAdminUsers = async () => {
 };
 
 onMounted(() => {
+  initializeUsersForDate();
   if (authStore.isAdmin) {
     getAdminUsers()
   } else {
